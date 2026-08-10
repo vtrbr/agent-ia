@@ -1,29 +1,29 @@
 import { callAI } from '../services/puterService.js';
+import { getBestModelForTask } from '../services/modelRouter.js';
 
 export async function fixCode(filePath, currentCode, errorMessage) {
-    const systemPrompt = `Você é um Engenheiro de Software especialista em Debugging (Self-Healing).
-    Você receberá um código fonte que quebrou e o log de erro exato do terminal.
-    
-    Sua missão é analisar o erro e reescrever o código de forma corrigida.
+    const systemPrompt = `Você é um Engenheiro especialista em Debugging.
+    Analise o erro e reescreva o código corrigido.
     
     REGRAS OBRIGATÓRIAS:
-    1. Retorne APENAS o código-fonte corrigido e completo.
-    2. NÃO use formatação markdown (como \`\`\`).
-    3. NÃO explique o que você mudou, apenas retorne o código pronto para ser salvo.`;
+    1. Retorne APENAS o código-fonte corrigido.
+    2. NÃO use formatação markdown.
+    3. NÃO explique o que você mudou.`;
 
-    const userPrompt = `Arquivo que apresentou falha: ${filePath}
+    const userPrompt = `Arquivo com falha: ${filePath}
     
     --- ERRO NO TERMINAL ---
     ${errorMessage}
     
-    --- CÓDIGO ATUAL COM DEFEITO ---
+    --- CÓDIGO ATUAL ---
     ${currentCode}
     
-    Retorne o código fonte totalmente corrigido:`;
+    Retorne o código corrigido:`;
 
     console.log(`🛠️ Testador: Analisando e corrigindo erro em ${filePath}...`);
     
-    const rawFixedCode = await callAI(systemPrompt, userPrompt, 'deepseek-chat');
+    const model = getBestModelForTask('debugging');
+    const rawFixedCode = await callAI(systemPrompt, userPrompt, model);
     const cleanCode = rawFixedCode.replace(/^```[\w]*\n/i, '').replace(/```$/i, '').trim();
     
     return cleanCode;
