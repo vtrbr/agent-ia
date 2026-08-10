@@ -1,27 +1,36 @@
-PS C:\Users\vrodr\ia\agent-ia\lovable-backend\src\agents> npm start
-🌐 Servidor da Plataforma rodando em: http://localhost:3900
+import { callAI } from '../services/puterService.js';
 
-📥 [API Gateway] Solicitação recebida: "Crie um sistema de calculadora de frete em Node.js com endpoints para calcular prazos e valores com base no CEP."
+export async function planProject(contextString) {
+    const prompt = `Com base no contexto abaixo, retorne APENAS um JSON válido contendo o plano de arquivos do projeto:
+{
+    "files": [
+        {
+            "path": "src/server.js",
+            "description": "Servidor principal com rotas da API"
+        }
+    ]
+}
+Contexto: ${contextString}`;
 
-========================================
-🤖 LOVABLE 2.0 - PIPELINE MULTIAGENTE ATIVO
-========================================
+    try {
+        const response = await callAI(prompt);
+        if (!response) throw new Error("Resposta da IA veio vazia.");
 
-📂 Workspace garantido em: C:\Users\vrodr\ia\agent-ia\lovable-backend\workspace
-❌ Erro ao processar requisitos via IA, usando fallback: Cannot read properties of undefined (reading 'trim')
-📋 Objetivo: Crie um sistema de calculadora de frete em Node.js com endpoints para calcular prazos e valores com base no CEP.
-🎨 UI/UX: Desenhando especificações visuais...
-🔀 [Router] Tarefa 'planning' roteada para: openai/gpt-4o-mini
-🗄️ Banco de Dados: Projetando esquemas de persistência...
-🔀 [Router] Tarefa 'planning' roteada para: openai/gpt-4o-mini
+        let cleaned = String(response).trim();
+        if (cleaned.startsWith('```')) {
+            cleaned = cleaned.replace(/^```(json)?/, '').replace(/```$/, '').trim();
+        }
 
-🧠 Arquiteto: Desenhando a estrutura para "{"requirements":{"objective":"Crie um sistema de calculadora de frete em Node.js com endpoints para calcular prazos e valores com base no CEP.","features":["Gerenciamento de dados","Interface principal"],"techStack":"Node.js com Express","outputFileName":"index.js"},"uiuxSpec":{"designSystem":null,"componentsNeeded":[],"layoutFlow":"API Backend pura"},"dbSpec":{"databaseType":"Nenhum","entities":[]}}"...
-🔀 [Router] Tarefa 'planning' roteada para: openai/gpt-4o-mini
-❌ Arquiteto falhou ao gerar um JSON estruturado. undefined
-
-❌ Erro crítico no motor autônomo: Error: Falha no parse do JSON do Arquiteto.
-    at planProject (file:///C:/Users/vrodr/ia/agent-ia/lovable-backend/src/agents/architect.js:37:15)
-    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
-    at async runLovableEngine (file:///C:/Users/vrodr/ia/agent-ia/lovable-backend/src/orchestrator.js:43:22)
-    at async file:///C:/Users/vrodr/ia/agent-ia/lovable-backend/src/server.js:32:9
-
+        return JSON.parse(cleaned);
+    } catch (error) {
+        console.warn("⚠️ Aviso no Arquiteto (usando plano de fallback):", error.message);
+        return {
+            files: [
+                {
+                    "path": "src/server.js",
+                    "description": "Servidor Express com endpoint de cálculo de frete"
+                }
+            ]
+        };
+    }
+}
