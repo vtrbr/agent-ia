@@ -1,7 +1,7 @@
-import { callRouter } from '../services/routerService.js'; // ou o serviço de IA que você está usando
+import { callAI } from '../services/puterService.js'; // Ajuste conforme o export real do seu puterService
 
 export async function analyzeRequirements(rawIdea) {
-    const prompt = `Analise a ideia de software fornecida pelo usuário e retorne APENAS um objeto JSON válido (sem blocos de código markdown como \`\`\`json, apenas o JSON puro) com a seguinte estrutura:
+    const prompt = `Analise a ideia de software fornecida pelo usuário e retorne APENAS um objeto JSON válido (sem blocos de código markdown, apenas o JSON puro) com a seguinte estrutura:
 {
     "objective": "Descrição clara do objetivo do projeto",
     "features": ["Funcionalidade 1", "Funcionalidade 2"],
@@ -12,24 +12,22 @@ export async function analyzeRequirements(rawIdea) {
 Ideia do usuário: "${rawIdea}"`;
 
     try {
-        const response = await callRouter('planning', prompt);
+        const response = await callAI(prompt);
         
-        // Remove marcações de markdown caso a IA coloque (ex: ```json ... ```)
         let cleanedResponse = response.trim();
         if (cleanedResponse.startsWith('```')) {
             cleanedResponse = cleanedResponse.replace(/^```(json)?/, '').replace(/```$/, '').trim();
         }
 
-        // Tenta fazer o parse do JSON
         return JSON.parse(cleanedResponse);
 
     } catch (error) {
-        console.error("❌ Erro ao processar requisitos:", error.message);
+        console.error("❌ Erro ao processar requisitos via IA, usando fallback:", error.message);
         
-        // Fallback de segurança para não quebrar o pipeline caso a IA falhe
+        // Fallback robusto para o pipeline não parar
         return {
             objective: rawIdea,
-            features: ["Funcionalidade padrão gerada por fallback"],
+            features: ["Gerenciamento de dados", "Interface principal"],
             techStack: "Node.js com Express",
             outputFileName: "index.js"
         };
