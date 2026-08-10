@@ -64,6 +64,18 @@ export function listProjectJobs(projectId) {
     return [...jobs.values()].filter((job) => job.projectId === projectId);
 }
 
+export function getQueueStats() {
+    const all = [...jobs.values()];
+    return {
+        total: all.length,
+        queued: all.filter((job) => job.status === 'queued').length,
+        running: all.filter((job) => job.status === 'running').length,
+        completed: all.filter((job) => job.status === 'completed').length,
+        failed: all.filter((job) => job.status === 'failed').length,
+        pending: pending.length,
+    };
+}
+
 export function subscribeJob(jobId, listener) {
     const set = listeners.get(jobId) || new Set();
     set.add(listener);

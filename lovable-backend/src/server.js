@@ -4,7 +4,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { runLovableEngine } from './orchestrator.js';
 import { createProject, getProject, listProjects, updateProject } from './services/projectStore.js';
-import { enqueueJob, getJob, listProjectJobs, subscribeJob } from './services/jobQueue.js';
+import { enqueueJob, getJob, getQueueStats, listProjectJobs, subscribeJob } from './services/jobQueue.js';
 import { getWorkspaceDir, listFiles, setWorkspace } from './services/tools.js';
 import fs from 'fs/promises';
 
@@ -45,7 +45,16 @@ async function enqueueBuild(project, prompt, testCommand) {
 }
 
 app.get('/api/health', (req, res) => {
-    res.json({ ok: true, service: 'agent-ia', version: '3.0.0' });
+    const aiConfigured = Boolean(process.env.PUTER_AUTH_TOKEN || process.env.PUTER_TOKEN);
+    res.json({
+        ok: true,
+        service: 'agent-ia',
+        version: '3.1.0',
+        node: process.version,
+        runtimeSupported: Number(process.versions.node.split('.')[0]) >= 24,
+        aiConfigured,
+        queue: getQueueStats(),
+    });
 });
 
 app.get('/api/projects', async (req, res, next) => {
