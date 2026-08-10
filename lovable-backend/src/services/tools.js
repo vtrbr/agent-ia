@@ -69,3 +69,28 @@ export async function gitRollback() {
         return false;
     }
 }
+// 🛠 FERRAMENTA 4: Editar Arquivo de Forma Incremental (Patch)
+export async function editFile(fileName, oldText, newText) {
+    try {
+        const filePath = path.join(WORKSPACE_DIR, fileName);
+        let content = await fs.readFile(filePath, 'utf-8');
+        
+        // Verifica se o texto antigo existe exatamente como a IA mandou
+        if (!content.includes(oldText)) {
+            return { 
+                success: false, 
+                message: `❌ Erro: O trecho de código antigo não foi encontrado no arquivo ${fileName}. A IA precisa enviar o trecho exato.`
+            };
+        }
+
+        // Substitui apenas o bloco específico
+        content = content.replace(oldText, newText);
+        await fs.writeFile(filePath, content, 'utf-8');
+        
+        console.log(`📝 Edição incremental aplicada no arquivo ${fileName}`);
+        return { success: true, message: `✅ Arquivo alterado com sucesso.` };
+        
+    } catch (error) {
+        return { success: false, message: `❌ Erro ao editar ${fileName}: ${error.message}` };
+    }
+}
