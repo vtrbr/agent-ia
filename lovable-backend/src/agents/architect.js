@@ -1,4 +1,5 @@
 import { callAI } from '../services/puterService.js';
+import { getBestModelForTask } from '../services/modelRouter.js';
 
 export async function planProject(projectDescription) {
     const systemPrompt = `Você é um Arquiteto de Software Senior.
@@ -15,16 +16,16 @@ export async function planProject(projectDescription) {
       "files": [
         {
           "path": "caminho/do/arquivo.ext",
-          "description": "Explicação detalhada do que o Programador deve escrever neste arquivo"
+          "description": "Explicação detalhada do que o Programador deve escrever"
         }
       ]
     }`;
 
     const userPrompt = `Crie a arquitetura para o seguinte projeto: "${projectDescription}"`;
-
     console.log(`\n🧠 Arquiteto: Desenhando a estrutura para "${projectDescription}"...`);
     
-    const rawResponse = await callAI(systemPrompt, userPrompt, 'openai/gpt-4o-mini');
+    const model = getBestModelForTask('planning');
+    const rawResponse = await callAI(systemPrompt, userPrompt, model);
     
     try {
         const cleanJson = rawResponse.replace(/```json/gi, '').replace(/```/gi, '').trim();
