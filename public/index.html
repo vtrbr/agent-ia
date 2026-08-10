@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lovable 2.0 - Plataforma Autônoma</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: #0f172a; color: #f8fafc; margin: 0; display: flex; height: 100vh; }
+        .sidebar { width: 300px; background: #1e293b; border-right: 1px solid #334155; padding: 20px; display: flex; flex-direction: column; }
+        .main-content { flex: 1; display: flex; flex-direction: column; justify-content: space-between; padding: 40px; }
+        h1 { font-size: 1.2rem; color: #38bdf8; margin-top: 0; }
+        .chat-box { flex: 1; overflow-y: auto; margin-bottom: 20px; padding-right: 10px; }
+        .message { margin-bottom: 15px; padding: 12px 16px; border-radius: 8px; max-width: 80%; line-height: 1.5; }
+        .user-msg { background: #0284c7; margin-left: auto; }
+        .ai-msg { background: #334155; }
+        .input-area { display: flex; gap: 10px; }
+        input { flex: 1; background: #1e293b; border: 1px solid #475569; padding: 14px; border-radius: 8px; color: white; font-size: 1rem; outline: none; }
+        input:focus { border-color: #38bdf8; }
+        button { background: #0284c7; color: white; border: none; padding: 0 24px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: background 0.2s; }
+        button:hover { background: #0ea5e9; }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h1>🤖 Lovable 2.0</h1>
+        <p style="color: #94a3b8; font-size: 0.9rem;">Plataforma de Engenharia de Software Multiagente Autônoma.</p>
+        <div style="margin-top: auto; font-size: 0.8rem; color: #64748b;">Status: Motor Conectado 🟢</div>
+    </div>
+    
+    <div class="main-content">
+        <div class="chat-box" id="chatBox">
+            <div class="message ai-msg">Olá! O que você deseja construir hoje? Descreva sua ideia e acionarei os agentes.</div>
+        </div>
+        
+        <div class="input-area">
+            <input type="text" id="promptInput" placeholder="Ex: Crie um sistema de login com banco de dados..." autofocus>
+            <button onclick="sendPrompt()">Enviar</button>
+        </div>
+    </div>
+
+    <script>
+        async function sendPrompt() {
+            const input = document.getElementById('promptInput');
+            const chatBox = document.getElementById('chatBox');
+            const text = input.value.trim();
+            
+            if (!text) return;
+
+            // Mostra mensagem do usuário
+            chatBox.innerHTML += `<div class="message user-msg">${text}</div>`;
+            input.value = '';
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            // Mensagem temporária de carregamento
+            const loadingId = 'loading-' + Date.now();
+            chatBox.innerHTML += `<div class="message ai-msg" id="${loadingId}">⚙️ Acionando múltiplos agentes (Requisitos, Arquiteto, Coder, Segurança)...</div>`;
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            try {
+                const response = await fetch('/api/build', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ prompt: text })
+                });
+                
+                const data = await response.json();
+                document.getElementById(loadingId).innerText = data.success 
+                    ? `✅ ${data.message} (Verifique o terminal para acompanhar os logs detalhados)` 
+                    : `❌ Erro: ${data.error}`;
+            } catch (err) {
+                document.getElementById(loadingId).innerText = `❌ Erro de conexão com o servidor backend.`;
+            }
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        document.getElementById('promptInput').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') sendPrompt();
+        });
+    </script>
+</body>
+</html>
