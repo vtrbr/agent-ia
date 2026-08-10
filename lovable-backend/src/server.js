@@ -5,7 +5,7 @@ import { fileURLToPath } from 'url';
 import { runLovableEngine } from './orchestrator.js';
 import { createProject, getProject, listProjects, updateProject } from './services/projectStore.js';
 import { enqueueJob, getJob, getQueueStats, listProjectJobs, subscribeJob } from './services/jobQueue.js';
-import { getWorkspaceDir, listFiles, setWorkspace } from './services/tools.js';
+import { getWorkspaceDir, gitRollbackTo, listFiles, listSnapshots, setWorkspace } from './services/tools.js';
 import fs from 'fs/promises';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -156,6 +156,27 @@ app.get('/api/build/:jobId/events', (req, res) => {
         if (['job.completed', 'job.failed'].includes(event.event)) res.end();
     });
     req.on('close', unsubscribe);
+});
+
+app.get('/api/projects/:projectId/versions', async (req, res, next) => {
+    try {
+        const project = await requireProject(req.params.projectId);
+        setWorkspace(project.id);
+        res.json({ projectId: project.id, versions: await listSnapshots() });
+    } catch (error) {
+        next(error);
+    }
+});
+
+app.post('/api/projects/:projectId/rollback', async (req, res, next) => {
+    try {
+        const project = await requireProject(req.params.projectId);
+        setWorkspace(project.id);
+        await gitRollbackTo(req.body?.commit);
+        res.json({ success: true, projectId: project.id, commit: req.body.commit });
+    } catch (error) {
+        next(error);
+    }
 });
 
 app.get('/api/projects/:projectId/files', async (req, res, next) => {

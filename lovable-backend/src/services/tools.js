@@ -212,6 +212,29 @@ export async function gitSnapshot(commitMessage = "Snapshot automático") {
 }
 
 // 🛠 FERRAMENTA 12: Restaurar Estado Anterior (Rollback Git)
+export async function listSnapshots() {
+    try {
+        const { stdout } = await execFileAsync('git', ['log', '--format=%H%x09%aI%x09%s', '-n', '30'], { cwd: workspaceDir });
+        return stdout.trim().split('\n').filter(Boolean).map((line) => {
+            const [commit, createdAt, ...messageParts] = line.split('\t');
+            return { commit, createdAt, message: messageParts.join('\t') };
+        });
+    } catch {
+        return [];
+    }
+}
+
+export async function gitRollbackTo(commit) {
+    const safeCommit = String(commit || '').trim();
+    if (!/^[a-f0-9]{7,64}$/i.test(safeCommit)) throw new Error('Commit de rollback inválido.');
+    try {
+        await execFileAsync('git', ['reset', '--hard', safeCommit], { cwd: workspaceDir });
+        return true;
+    } catch (error) {
+        throw new Error(`Falha no rollback: ${error.message}`);
+    }
+}
+
 export async function gitRollback() {
     try {
         await execAsync('git reset --hard HEAD~1', { cwd: workspaceDir });
