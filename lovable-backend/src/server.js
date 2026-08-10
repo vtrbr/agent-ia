@@ -12,6 +12,11 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const app = express();
 
+const majorNodeVersion = Number(process.versions.node.split('.')[0]);
+if (majorNodeVersion < 24) {
+    console.warn(`⚠️ Node.js ${process.version} detectado. O Puter.js atual requer Node.js 24+ para chamadas reais.`);
+}
+
 app.use(express.json({ limit: '1mb' }));
 app.use(cors());
 app.use(express.static(path.join(__dirname, '../../public')));
