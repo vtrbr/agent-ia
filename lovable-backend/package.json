@@ -1,13 +1,27 @@
 {
   "name": "lovable-backend",
   "version": "1.0.0",
-  "description": "",
-  "main": "src/orchestrator.js",
+  "main": "src/server.js",
   "type": "module",
   "scripts": {
-    "start": "node src/orchestrator.js"
+    "start": "node src/server.js"
   },
   "dependencies": {
-    "@heyputer/puter.js": "^1.0.0"
+    "@heyputer/puter.js": "^1.0.0",
+    "cors": "^2.8.5",
+    "express": "^4.19.2"
+  }
+}{
+  "name": "lovable-backend",
+  "version": "1.0.0",
+  "main": "src/server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/server.js"
+  },
+  "dependencies": {
+    "@heyputer/puter.js": "^1.0.0",
+    "cors": "^2.8.5",
+    "express": "^4.19.2"
   }
 }
