@@ -1,23 +1,27 @@
-> node src/server.js\agent-ia\lovable-backend\src> cd ..
-PS C:\Users\vrodr\ia\agent-ia\lovable-backend> npm start
-node:internal/modules/esm/resolve:274
-    throw new ERR_MODULE_NOT_FOUND(
-          ^
+PS C:\Users\vrodr\ia\agent-ia\lovable-backend\src\agents> npm start
+🌐 Servidor da Plataforma rodando em: http://localhost:3900
 
-Error [ERR_MODULE_NOT_FOUND]: Cannot find module 'C:\Users\vrodr\ia\agent-ia\lovable-backend\src\services\routerService.js' imported from C:\Users\vrodr\ia\agent-ia\lovable-backend\src\agents\requirementsAnalyzer.js
-    at finalizeResolution (node:internal/modules/esm/resolve:274:11)
-    at moduleResolve (node:internal/modules/esm/resolve:864:10)
-    at defaultResolve (node:internal/modules/esm/resolve:990:11)
-    at #cachedDefaultResolve (node:internal/modules/esm/loader:712:20)
-    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:729:38)
-    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:758:52)
-    at #resolve (node:internal/modules/esm/loader:694:17)
-    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:614:35)
-    at ModuleJob.syncLink (node:internal/modules/esm/module_job:143:33)
-    at ModuleJob.link (node:internal/modules/esm/module_job:228:17) {
-  code: 'ERR_MODULE_NOT_FOUND',
-  url: 'file:///C:/Users/vrodr/ia/agent-ia/lovable-backend/src/services/routerService.js'
-}
+📥 [API Gateway] Solicitação recebida: "Crie um sistema de calculadora de frete em Node.js com endpoints para calcular prazos e valores com base no CEP."
 
-Node.js v25.3.0
-PS C:\Users\vrodr\ia\agent-ia\lovable-backend>
+========================================
+🤖 LOVABLE 2.0 - PIPELINE MULTIAGENTE ATIVO
+========================================
+
+📂 Workspace garantido em: C:\Users\vrodr\ia\agent-ia\lovable-backend\workspace
+❌ Erro ao processar requisitos via IA, usando fallback: Cannot read properties of undefined (reading 'trim')
+📋 Objetivo: Crie um sistema de calculadora de frete em Node.js com endpoints para calcular prazos e valores com base no CEP.
+🎨 UI/UX: Desenhando especificações visuais...
+🔀 [Router] Tarefa 'planning' roteada para: openai/gpt-4o-mini
+🗄️ Banco de Dados: Projetando esquemas de persistência...
+🔀 [Router] Tarefa 'planning' roteada para: openai/gpt-4o-mini
+
+🧠 Arquiteto: Desenhando a estrutura para "{"requirements":{"objective":"Crie um sistema de calculadora de frete em Node.js com endpoints para calcular prazos e valores com base no CEP.","features":["Gerenciamento de dados","Interface principal"],"techStack":"Node.js com Express","outputFileName":"index.js"},"uiuxSpec":{"designSystem":null,"componentsNeeded":[],"layoutFlow":"API Backend pura"},"dbSpec":{"databaseType":"Nenhum","entities":[]}}"...
+🔀 [Router] Tarefa 'planning' roteada para: openai/gpt-4o-mini
+❌ Arquiteto falhou ao gerar um JSON estruturado. undefined
+
+❌ Erro crítico no motor autônomo: Error: Falha no parse do JSON do Arquiteto.
+    at planProject (file:///C:/Users/vrodr/ia/agent-ia/lovable-backend/src/agents/architect.js:37:15)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async runLovableEngine (file:///C:/Users/vrodr/ia/agent-ia/lovable-backend/src/orchestrator.js:43:22)
+    at async file:///C:/Users/vrodr/ia/agent-ia/lovable-backend/src/server.js:32:9
+
