@@ -1,39 +1,18 @@
-PS C:\Users\vrodr\ia\agent-ia\lovable-backend\src> cd ..
-PS C:\Users\vrodr\ia\agent-ia\lovable-backend> npm start
+Olá! Estou desenvolvendo um projeto open-source chamado "Agent-IA" (disponível no meu repositório: https://github.com/vtrbr/agent-ia) e preciso de ajuda para analisar, testar e corrigir o código.
 
-> lovable-backend@1.0.0 start
-> node src/server.js
+### 📌 Sobre o Projeto:
+O Agent-IA é um motor autônomo multiagente de engenharia de software (estilo Lovable / Devin) construído em Node.js (ES Modules). O ecossistema funciona da seguinte forma:
+1. **API Gateway / Servidor (`server.js`):** Recebe solicitações de projetos via chat web e dispara o pipeline de agentes em segundo plano.
+2. **Pipeline Multiagente (`orchestrator.js`):** Orquestra vários agentes especializados em sequência (Requirements Analyzer, UI/UX & Database Specifiers, Architect, Dependency Manager, Coder, Security AppSec, Tester / Self-Healing).
+3. **Serviço de IA (`puterService.js`):** Conecta-se à inteligência artificial para processar os prompts dos agentes.
 
-🌐 Servidor da Plataforma rodando em: http://localhost:3900
+### 🔗 Links Oficiais de Referência e Recursos:
+- **Repositório do Projeto:** https://github.com/vtrbr/agent-ia
+- **Documentação Oficial do Puter.js (Plataforma de IA/Hosting utilizada):** https://docs.puter.com
 
-📥 [API Gateway] Solicitação recebida: "Crie um sistema de calculadora de frete em Node.js com endpoints para calcular prazos e valores com base no CEP."
+### 🎯 O que preciso que você faça:
+1. Acesse o meu repositório (https://github.com/vtrbr/agent-ia) ou analise a estrutura dos ficheiros principais (`server.js`, `orchestrator.js`, `puterService.js` e os agentes).
+2. Valide se há algum erro de sintaxe, importação incorreta de módulos ES, ou falhas no tratamento de respostas retornadas pelo serviço de IA.
+3. Baseando-se na documentação oficial do Puter (https://docs.puter.com), ajuste o `puterService.js` e os agentes para garantir que as chamadas às LLMs retornem dados limpos e válidos, evitando falhas de `undefined` ou parse de JSON.
 
-========================================
-🤖 LOVABLE 2.0 - PIPELINE MULTIAGENTE ATIVO
-========================================
-
-📂 Workspace garantido em: C:\Users\vrodr\ia\agent-ia\lovable-backend\workspace
-⚠️ Aviso no Requisitos (usando fallback): Resposta da IA veio vazia.
-📋 Objetivo: Crie um sistema de calculadora de frete em Node.js com endpoints para calcular prazos e valores com base no CEP.
-🎨 UI/UX: Desenhando especificações visuais...
-🔀 [Router] Tarefa 'planning' roteada para: openai/gpt-4o-mini
-🗄️ Banco de Dados: Projetando esquemas de persistência...
-🔀 [Router] Tarefa 'planning' roteada para: openai/gpt-4o-mini
-⚠️ Aviso no Arquiteto (usando plano de fallback): Resposta da IA veio vazia.
-
-📦 Gerente de Dependências: Analisando pacotes...
-🔀 [Router] Tarefa 'dependencies' roteada para: openai/gpt-4o-mini
-❌ O Gerente de Dependências falhou. TypeError: Cannot read properties of undefined (reading 'replace')
-    at installDependencies (file:///C:/Users/vrodr/ia/agent-ia/lovable-backend/src/agents/dependencyManager.js:24:39)
-    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
-    at async runLovableEngine (file:///C:/Users/vrodr/ia/agent-ia/lovable-backend/src/orchestrator.js:46:9)
-    at async file:///C:/Users/vrodr/ia/agent-ia/lovable-backend/src/server.js:32:9
-💻 Programador: Escrevendo código para src/server.js...
-🔀 [Router] Tarefa 'coding' roteada para: deepseek-chat
-
-❌ Erro crítico no motor autônomo: TypeError: Cannot read properties of undefined (reading 'replace')
-    at generateCode (file:///C:/Users/vrodr/ia/agent-ia/lovable-backend/src/agents/coder.js:23:31)
-    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
-    at async runLovableEngine (file:///C:/Users/vrodr/ia/agent-ia/lovable-backend/src/orchestrator.js:50:24)
-    at async file:///C:/Users/vrodr/ia/agent-ia/lovable-backend/src/server.js:32:9
-PS C:\Users\vrodr\ia\agent-ia\lovable-backend>
+Pode começar fazendo uma varredura no repositório e me apontando as correções necessárias para o sistema rodar de ponta a ponta!
