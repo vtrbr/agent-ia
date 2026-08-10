@@ -1,9 +1,10 @@
 import fs from 'fs/promises';
 import path from 'path';
-import { exec, spawn } from 'child_process';
+import { exec, execFile, spawn } from 'child_process';
 import { promisify } from 'util';
 
 const execAsync = promisify(exec);
+const execFileAsync = promisify(execFile);
 const WORKSPACE_ROOT = path.join(process.cwd(), 'workspace');
 let workspaceDir = WORKSPACE_ROOT;
 
@@ -198,9 +199,10 @@ export async function stopServer() {
 // 🛠 FERRAMENTA 11: Criar Ponto de Restauração (Snapshot Git)
 export async function gitSnapshot(commitMessage = "Snapshot automático") {
     try {
-        await execAsync('git init', { cwd: workspaceDir });
-        await execAsync('git add .', { cwd: workspaceDir });
-        await execAsync(`git commit -m "${commitMessage}"`, { cwd: workspaceDir });
+        const safeMessage = String(commitMessage || 'Snapshot automático').replace(/[\r\n]/g, ' ').slice(0, 200);
+        await execFileAsync('git', ['init'], { cwd: workspaceDir });
+        await execFileAsync('git', ['add', '.'], { cwd: workspaceDir });
+        await execFileAsync('git', ['commit', '-m', safeMessage], { cwd: workspaceDir });
         console.log(`📸 Snapshot salvo: ${commitMessage}`);
         return true;
     } catch (error) {
