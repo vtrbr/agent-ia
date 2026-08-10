@@ -1,80 +1,48 @@
-0 verbose cli C:\Program Files\nodejs\node.exe C:\Program Files\nodejs\node_modules\npm\bin\npm-cli.js
-1 info using npm@11.6.2
-2 info using node@v25.3.0
-3 silly config load:file:C:\Program Files\nodejs\node_modules\npm\npmrc
-4 silly config load:file:C:\Users\vrodr\ia\agent-ia\lovable-backend\.npmrc
-5 silly config load:file:C:\Users\vrodr\.npmrc
-6 silly config load:file:C:\Users\vrodr\AppData\Roaming\npm\etc\npmrc
-7 verbose title npm install
-8 verbose argv "install"
-9 verbose logfile logs-max:10 dir:C:\Users\vrodr\AppData\Local\npm-cache\_logs\2026-08-10T00_54_47_953Z-
-10 verbose logfile C:\Users\vrodr\AppData\Local\npm-cache\_logs\2026-08-10T00_54_47_953Z-debug-0.log
-11 silly logfile start cleaning logs, removing 1 files
-12 silly packumentCache heap:2135949312 maxSize:533987328 maxEntrySize:266993664
-13 silly logfile done cleaning log files
-14 verbose stack JSONParseError: Invalid package.json: JSONParseError: Unexpected non-whitespace character after JSON at position 275 (line 14 column 2) while parsing near "...\": \"^4.19.2\"\r\n  }\r\n}{\r\n  \"name\": \"lovabl..."
-14 verbose stack     at parse (C:\Program Files\nodejs\node_modules\npm\node_modules\@npmcli\package-json\lib\read-package.js:19:21)
-14 verbose stack     at PackageJson.fromJSON (C:\Program Files\nodejs\node_modules\npm\node_modules\@npmcli\package-json\lib\index.js:162:22)
-14 verbose stack     at PackageJson.load (C:\Program Files\nodejs\node_modules\npm\node_modules\@npmcli\package-json\lib\index.js:157:17)
-14 verbose stack     at async PackageJson.normalize (C:\Program Files\nodejs\node_modules\npm\node_modules\@npmcli\package-json\lib\index.js:117:5)
-14 verbose stack     at async #initTree (C:\Program Files\nodejs\node_modules\npm\node_modules\@npmcli\arborist\lib\arborist\build-ideal-tree.js:284:34)
-14 verbose stack     at async Arborist.buildIdealTree (C:\Program Files\nodejs\node_modules\npm\node_modules\@npmcli\arborist\lib\arborist\build-ideal-tree.js:179:7)
-14 verbose stack     at async Promise.all (index 1)
-14 verbose stack     at async Arborist.reify (C:\Program Files\nodejs\node_modules\npm\node_modules\@npmcli\arborist\lib\arborist\reify.js:114:5)
-14 verbose stack     at async Install.exec (C:\Program Files\nodejs\node_modules\npm\lib\commands\install.js:150:5)
-14 verbose stack     at async Npm.exec (C:\Program Files\nodejs\node_modules\npm\lib\npm.js:208:9)
-15 error code EJSONPARSE
-16 error JSON.parse Invalid package.json: JSONParseError: Unexpected non-whitespace character after JSON at position 275 (line 14 column 2) while parsing near "...\": \"^4.19.2\"\r\n  }\r\n}{\r\n  \"name\": \"lovabl..."
-17 error JSON.parse Failed to parse JSON data.
-17 error JSON.parse Note: package.json must be actual JSON, not just JavaScript.
-18 silly unfinished npm timer reify 1786323348886
-19 silly unfinished npm timer reify:loadTrees 1786323348893
-20 silly unfinished npm timer idealTree:init 1786323348898
-21 verbose cwd C:\Users\vrodr\ia\agent-ia\lovable-backend
-22 verbose os Windows_NT 10.0.19045
-23 verbose node v25.3.0
-24 verbose npm  v11.6.2
-25 verbose exit 1
-26 verbose code 1
-27 error A complete log of this run can be found in: C:\Users\vrodr\AppData\Local\npm-cache\_logs\2026-08-10T00_54_47_953Z-debug-0.log
+import express from 'express';
+import cors from 'cors';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-0 verbose cli C:\Program Files\nodejs\node.exe C:\Program Files\nodejs\node_modules\npm\bin\npm-cli.js
-1 info using npm@11.6.2
-2 info using node@v25.3.0
-3 silly config load:file:C:\Program Files\nodejs\node_modules\npm\npmrc
-4 silly config load:file:C:\Users\vrodr\ia\agent-ia\lovable-backend\.npmrc
-5 silly config load:file:C:\Users\vrodr\.npmrc
-6 silly config load:file:C:\Users\vrodr\AppData\Roaming\npm\etc\npmrc
-7 verbose title npm install
-8 verbose argv "install"
-9 verbose logfile logs-max:10 dir:C:\Users\vrodr\AppData\Local\npm-cache\_logs\2026-08-10T00_54_47_953Z-
-10 verbose logfile C:\Users\vrodr\AppData\Local\npm-cache\_logs\2026-08-10T00_54_47_953Z-debug-0.log
-11 silly logfile start cleaning logs, removing 1 files
-12 silly packumentCache heap:2135949312 maxSize:533987328 maxEntrySize:266993664
-13 silly logfile done cleaning log files
-14 verbose stack JSONParseError: Invalid package.json: JSONParseError: Unexpected non-whitespace character after JSON at position 275 (line 14 column 2) while parsing near "...\": \"^4.19.2\"\r\n  }\r\n}{\r\n  \"name\": \"lovabl..."
-14 verbose stack     at parse (C:\Program Files\nodejs\node_modules\npm\node_modules\@npmcli\package-json\lib\read-package.js:19:21)
-14 verbose stack     at PackageJson.fromJSON (C:\Program Files\nodejs\node_modules\npm\node_modules\@npmcli\package-json\lib\index.js:162:22)
-14 verbose stack     at PackageJson.load (C:\Program Files\nodejs\node_modules\npm\node_modules\@npmcli\package-json\lib\index.js:157:17)
-14 verbose stack     at async PackageJson.normalize (C:\Program Files\nodejs\node_modules\npm\node_modules\@npmcli\package-json\lib\index.js:117:5)
-14 verbose stack     at async #initTree (C:\Program Files\nodejs\node_modules\npm\node_modules\@npmcli\arborist\lib\arborist\build-ideal-tree.js:284:34)
-14 verbose stack     at async Arborist.buildIdealTree (C:\Program Files\nodejs\node_modules\npm\node_modules\@npmcli\arborist\lib\arborist\build-ideal-tree.js:179:7)
-14 verbose stack     at async Promise.all (index 1)
-14 verbose stack     at async Arborist.reify (C:\Program Files\nodejs\node_modules\npm\node_modules\@npmcli\arborist\lib\arborist\reify.js:114:5)
-14 verbose stack     at async Install.exec (C:\Program Files\nodejs\node_modules\npm\lib\commands\install.js:150:5)
-14 verbose stack     at async Npm.exec (C:\Program Files\nodejs\node_modules\npm\lib\npm.js:208:9)
-15 error code EJSONPARSE
-16 error JSON.parse Invalid package.json: JSONParseError: Unexpected non-whitespace character after JSON at position 275 (line 14 column 2) while parsing near "...\": \"^4.19.2\"\r\n  }\r\n}{\r\n  \"name\": \"lovabl..."
-17 error JSON.parse Failed to parse JSON data.
-17 error JSON.parse Note: package.json must be actual JSON, not just JavaScript.
-18 silly unfinished npm timer reify 1786323348886
-19 silly unfinished npm timer reify:loadTrees 1786323348893
-20 silly unfinished npm timer idealTree:init 1786323348898
-21 verbose cwd C:\Users\vrodr\ia\agent-ia\lovable-backend
-22 verbose os Windows_NT 10.0.19045
-23 verbose node v25.3.0
-24 verbose npm  v11.6.2
-25 verbose exit 1
-26 verbose code 1
-27 error A complete log of this run can be found in: C:\Users\vrodr\AppData\Local\npm-cache\_logs\2026-08-10T00_54_47_953Z-debug-0.log
+const app = express();
+app.use(express.json());
+app.use(cors());
+
+// Como o src está dentro de lovable-backend e o public está na raiz (agent-ia/public),
+// subimos duas pastas para alcançar a raiz e entrar em public: ../../public
+// Ou, dependendo de onde o terminal roda, subimos um nível: ../public
+const publicPath = path.join(__dirname, '../../public'); 
+app.use(express.static(publicPath));
+
+app.get('/', (req, res) => {
+    res.sendFile(path.join(publicPath, 'index.html'));
+});
+
+// Rota principal do Chat
+app.post('/api/build', async (req, res) => {
+    const { prompt } = req.body;
+    
+    if (!prompt) {
+        return res.status(400).json({ error: 'O prompt do projeto é obrigatório.' });
+    }
+
+    try {
+        console.log(`\n📥 [API Gateway] Solicitação recebida: "${prompt}"`);
+        
+        res.json({ 
+            success: true, 
+            message: `Motor acionado com sucesso para: "${prompt}". Acompanhe o terminal!` 
+        });
+
+    } catch (error) {
+        console.error("❌ Erro na API de build:", error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+    console.log(`🌐 Servidor da Plataforma rodando em: http://localhost:${PORT}`);
+});
