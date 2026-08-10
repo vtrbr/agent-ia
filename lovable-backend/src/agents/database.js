@@ -1,5 +1,6 @@
 import { callAI } from '../services/puterService.js';
 import { getBestModelForTask } from '../services/modelRouter.js';
+import { parseJsonResponse } from '../services/responseUtils.js';
 
 export async function specifyDatabase(requirements) {
     const systemPrompt = `Você é um Arquiteto de Banco de Dados Sênior.
@@ -27,8 +28,7 @@ export async function specifyDatabase(requirements) {
     const rawResponse = await callAI(systemPrompt, userPrompt, model);
 
     try {
-        const cleanJson = rawResponse.replace(/```json/gi, '').replace(/```/gi, '').trim();
-        return JSON.parse(cleanJson);
+        return parseJsonResponse(rawResponse, 'especificação de banco de dados');
     } catch (error) {
         return { databaseType: "Nenhum", entities: [] };
     }

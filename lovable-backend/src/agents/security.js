@@ -1,5 +1,6 @@
 import { callAI } from '../services/puterService.js';
 import { getBestModelForTask } from '../services/modelRouter.js';
+import { assertStringResponse } from '../services/responseUtils.js';
 
 export async function auditCode(filePath, code) {
     const systemPrompt = `Você é um Engenheiro de Segurança de Software (AppSec).
@@ -18,7 +19,5 @@ export async function auditCode(filePath, code) {
     const model = getBestModelForTask('security');
     const rawResponse = await callAI(systemPrompt, userPrompt, model);
     
-    const cleanResponse = rawResponse.replace(/^```[\w]*\n/i, '').replace(/```$/i, '').trim();
-    
-    return cleanResponse;
+    return assertStringResponse(rawResponse, `auditoria de segurança para ${filePath}`);
 }

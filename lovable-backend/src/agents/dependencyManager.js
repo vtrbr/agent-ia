@@ -1,6 +1,7 @@
 import { callAI } from '../services/puterService.js';
 import { runCommand } from '../services/tools.js';
 import { getBestModelForTask } from '../services/modelRouter.js';
+import { parseJsonResponse } from '../services/responseUtils.js';
 
 export async function installDependencies(projectContext, filesPlan) {
     const systemPrompt = `Você é um Gerente de Dependências (DevOps).
@@ -21,12 +22,14 @@ export async function installDependencies(projectContext, filesPlan) {
     const rawResponse = await callAI(systemPrompt, userPrompt, model);
     
     try {
-        const cleanJson = rawResponse.replace(/```json/gi, '').replace(/```/gi, '').trim();
-        const packages = JSON.parse(cleanJson);
-        
+        const packages = parseJsonResponse(rawResponse, 'lista de dependências');
+        if (!Array.isArray(packages) || packages.some((pkg) => typeof pkg !== 'string' || !/^[a-zA-Z0-9@._\-/]+(?:@[a-zA-Z0-9._\-]+)?$/.test(pkg))) {
+            throw new Error('A IA retornou uma lista de dependências inválida.');
+        }
+
         if (packages.length > 0) {
             console.log(`📥 Instalando: ${packages.join(', ')}`);
-            await runCommand('npm init -y'); 
+            await runCommand('npm init -y');
             await runCommand(`npm install ${packages.join(' ')}`);
             console.log(`✅ Dependências instaladas!`);
         }

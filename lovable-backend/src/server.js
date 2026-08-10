@@ -2,13 +2,14 @@ import express from 'express';
 import cors from 'cors';
 import path from 'path';
 import { fileURLToPath } from 'url';
-// Importe a função principal do seu orquestrador atualizado
-// (Certifique-se de exportar uma função que aceite a ideia e retorne status, ou use o runLovableEngine)
+import { randomUUID } from 'crypto';
+import { runLovableEngine } from './orchestrator.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
+const jobs = new Map();
 app.use(express.json());
 app.use(cors());
 
@@ -26,17 +27,36 @@ app.post('/api/build', async (req, res) => {
     try {
         console.log(`\n📥 [API Gateway] Nova solicitação recebida: "${prompt}"`);
         
-        // Aqui você aciona o motor do orquestrador
-        // Para fins de resposta imediata à API, enviamos um sinal de sucesso de início
-        res.json({ 
-            success: true, 
-            message: `Motor acionado com sucesso para o projeto: "${prompt}". Acompanhe o terminal para ver os agentes trabalhando!` 
+        const jobId = randomUUID();
+        jobs.set(jobId, { id: jobId, prompt, status: 'queued', createdAt: new Date().toISOString() });
+        res.status(202).json({ success: true, jobId, status: 'queued' });
+
+        setImmediate(async () => {
+            const job = jobs.get(jobId);
+            if (!job) return;
+            job.status = 'running';
+            job.startedAt = new Date().toISOString();
+            try {
+                await runLovableEngine(prompt);
+                job.status = 'completed';
+                job.completedAt = new Date().toISOString();
+            } catch (error) {
+                job.status = 'failed';
+                job.error = error.message;
+                console.error(`❌ [Job ${jobId}]`, error);
+            }
         });
 
     } catch (error) {
         console.error("❌ Erro na API de build:", error);
         res.status(500).json({ success: false, error: error.message });
     }
+});
+
+app.get('/api/build/:jobId', (req, res) => {
+    const job = jobs.get(req.params.jobId);
+    if (!job) return res.status(404).json({ error: 'Job não encontrado.' });
+    res.json(job);
 });
 
 const PORT = process.env.PORT || 3000;

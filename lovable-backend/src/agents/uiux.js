@@ -1,5 +1,6 @@
 import { callAI } from '../services/puterService.js';
 import { getBestModelForTask } from '../services/modelRouter.js';
+import { parseJsonResponse } from '../services/responseUtils.js';
 
 export async function specifyUIUX(requirements) {
     const systemPrompt = `Você é um Especialista em UI/UX e Design System.
@@ -27,8 +28,7 @@ export async function specifyUIUX(requirements) {
     const rawResponse = await callAI(systemPrompt, userPrompt, model);
 
     try {
-        const cleanJson = rawResponse.replace(/```json/gi, '').replace(/```/gi, '').trim();
-        return JSON.parse(cleanJson);
+        return parseJsonResponse(rawResponse, 'especificação UI/UX');
     } catch (error) {
         // Se o projeto for puramente backend/API e não usar UI, retorna um padrão vazio seguro
         return { designSystem: null, componentsNeeded: [], layoutFlow: "API Backend pura" };

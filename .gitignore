@@ -1,0 +1,4 @@
+lovable-backend/node_modules/
+lovable-backend/workspace/
+*.log
+.DS_Store

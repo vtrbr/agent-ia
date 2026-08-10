@@ -1,4 +1,5 @@
 import { callAI } from '../services/puterService.js';
+import { parseJsonResponse } from '../services/responseUtils.js';
 
 export async function analyzeRequirements(rawIdea) {
     const prompt = `Analise a ideia de software e retorne APENAS um objeto JSON válido (sem markdown, apenas o JSON puro) com esta estrutura exata:
@@ -14,12 +15,7 @@ Ideia: "${rawIdea}"`;
         const response = await callAI(prompt);
         if (!response) throw new Error("Resposta da IA veio vazia.");
 
-        let cleaned = String(response).trim();
-        if (cleaned.startsWith('```')) {
-            cleaned = cleaned.replace(/^```(json)?/, '').replace(/```$/, '').trim();
-        }
-
-        return JSON.parse(cleaned);
+        return parseJsonResponse(response, 'requisitos');
     } catch (error) {
         console.warn("⚠️ Aviso no Requisitos (usando fallback):", error.message);
         return {

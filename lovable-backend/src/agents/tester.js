@@ -1,5 +1,6 @@
 import { callAI } from '../services/puterService.js';
 import { getBestModelForTask } from '../services/modelRouter.js';
+import { assertStringResponse } from '../services/responseUtils.js';
 
 export async function fixCode(filePath, currentCode, errorMessage) {
     const systemPrompt = `Você é um Engenheiro especialista em Debugging.
@@ -24,7 +25,5 @@ export async function fixCode(filePath, currentCode, errorMessage) {
     
     const model = getBestModelForTask('debugging');
     const rawFixedCode = await callAI(systemPrompt, userPrompt, model);
-    const cleanCode = rawFixedCode.replace(/^```[\w]*\n/i, '').replace(/```$/i, '').trim();
-    
-    return cleanCode;
+    return assertStringResponse(rawFixedCode, `correção gerada para ${filePath}`);
 }

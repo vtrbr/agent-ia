@@ -42,6 +42,10 @@ export async function runLovableEngine(rawIdea, testCommand = "node index.js") {
         // 4. Arquiteto planeja considerando UI/UX e Banco
         const plan = await planProject(contextString);
 
+        if (!plan || !Array.isArray(plan.files) || plan.files.length === 0) {
+            throw new Error('O arquiteto não retornou um plano de arquivos válido.');
+        }
+
         // 5. Gerenciamento de Dependências
         await installDependencies(contextString, plan.files);
 
@@ -102,8 +106,10 @@ export async function runLovableEngine(rawIdea, testCommand = "node index.js") {
         await saveProjectMemory(memory);
 
         console.log(`\n✨ CICLO COMPLETO CONCLUÍDO COM SUCESSO! ✨\n`);
+        return { success: true, requirements, plan };
 
     } catch (error) {
         console.error("\n❌ Erro crítico no motor autônomo:", error);
+        throw error;
     }
 }

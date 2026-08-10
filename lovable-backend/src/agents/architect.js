@@ -1,4 +1,5 @@
 import { callAI } from '../services/puterService.js';
+import { parseJsonResponse } from '../services/responseUtils.js';
 
 export async function planProject(contextString) {
     const prompt = `Com base no contexto abaixo, retorne APENAS um JSON válido contendo o plano de arquivos do projeto:
@@ -16,12 +17,7 @@ Contexto: ${contextString}`;
         const response = await callAI(prompt);
         if (!response) throw new Error("Resposta da IA veio vazia.");
 
-        let cleaned = String(response).trim();
-        if (cleaned.startsWith('```')) {
-            cleaned = cleaned.replace(/^```(json)?/, '').replace(/```$/, '').trim();
-        }
-
-        return JSON.parse(cleaned);
+        return parseJsonResponse(response, 'plano arquitetural');
     } catch (error) {
         console.warn("⚠️ Aviso no Arquiteto (usando plano de fallback):", error.message);
         return {

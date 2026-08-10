@@ -1,5 +1,6 @@
 import { callAI } from '../services/puterService.js';
 import { getBestModelForTask } from '../services/modelRouter.js';
+import { assertStringResponse } from '../services/responseUtils.js';
 
 export async function generateCode(filePath, fileDescription, projectContext) {
     const systemPrompt = `Você é um Desenvolvedor Senior Especialista.
@@ -20,7 +21,5 @@ export async function generateCode(filePath, fileDescription, projectContext) {
     
     const model = getBestModelForTask('coding');
     const rawCode = await callAI(systemPrompt, userPrompt, model);
-    const cleanCode = rawCode.replace(/^```[\w]*\n/i, '').replace(/```$/i, '').trim();
-    
-    return cleanCode;
+    return assertStringResponse(rawCode, `código gerado para ${filePath}`);
 }
