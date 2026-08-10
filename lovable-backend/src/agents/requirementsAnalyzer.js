@@ -1,34 +1,37 @@
-import { callAI } from '../services/puterService.js';
-import { getBestModelForTask } from '../services/modelRouter.js';
+import { callRouter } from '../services/routerService.js'; // ou o serviço de IA que você está usando
 
-export async function analyzeRequirements(rawUserPrompt) {
-    const systemPrompt = `Você é um Engenheiro de Requisitos e Analista de Sistemas Senior.
-    Sua missão é pegar o pedido bruto do usuário e estruturá-lo em requisitos técnicos claros.
-    
-    REGRAS OBRIGATÓRIAS:
-    1. Responda EXCLUSIVAMENTE com um JSON válido.
-    2. NÃO use formatação markdown (como \`\`\`json).
-    
-    ESTRUTURA ESPERADA DO JSON:
-    {
-      "objective": "Resumo claro do que será construído",
-      "pagesOrEndpoints": ["Lista de rotas, telas ou endpoints principais"],
-      "databaseNeeded": true/false,
-      "coreFeatures": ["Funcionalidade 1", "Funcionalidade 2"]
-    }`;
+export async function analyzeRequirements(rawIdea) {
+    const prompt = `Analise a ideia de software fornecida pelo usuário e retorne APENAS um objeto JSON válido (sem blocos de código markdown como \`\`\`json, apenas o JSON puro) com a seguinte estrutura:
+{
+    "objective": "Descrição clara do objetivo do projeto",
+    "features": ["Funcionalidade 1", "Funcionalidade 2"],
+    "techStack": "Tecnologias principais sugeridas",
+    "outputFileName": "index.js"
+}
 
-    console.log(`\n📋 Analisador de Requisitos: Processando a solicitação do usuário...`);
-    
-    const model = getBestModelForTask('planning');
-    const rawResponse = await callAI(systemPrompt, rawUserPrompt, model);
-    
+Ideia do usuário: "${rawIdea}"`;
+
     try {
-        const cleanJson = rawResponse.replace(/```json/gi, '').replace(/```/gi, '').trim();
-        const analysis = JSON.parse(cleanJson);
-        console.log(`✅ Requisitos analisados com sucesso.`);
-        return analysis;
+        const response = await callRouter('planning', prompt);
+        
+        // Remove marcações de markdown caso a IA coloque (ex: ```json ... ```)
+        let cleanedResponse = response.trim();
+        if (cleanedResponse.startsWith('```')) {
+            cleanedResponse = cleanedResponse.replace(/^```(json)?/, '').replace(/```$/, '').trim();
+        }
+
+        // Tenta fazer o parse do JSON
+        return JSON.parse(cleanedResponse);
+
     } catch (error) {
-        console.error("❌ Erro ao processar requisitos.", rawResponse);
-        throw new Error("Falha no parse do JSON de Requisitos.");
+        console.error("❌ Erro ao processar requisitos:", error.message);
+        
+        // Fallback de segurança para não quebrar o pipeline caso a IA falhe
+        return {
+            objective: rawIdea,
+            features: ["Funcionalidade padrão gerada por fallback"],
+            techStack: "Node.js com Express",
+            outputFileName: "index.js"
+        };
     }
 }
