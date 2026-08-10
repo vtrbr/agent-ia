@@ -1,25 +1,32 @@
-import { initWorkspace, writeFile, readFile, runCommand } from './services/tools.js';
+import { initWorkspace, writeFile, readFile, runCommand, gitSnapshot, gitRollback } from './services/tools.js';
 import { planProject } from './agents/architect.js';
 import { generateCode } from './agents/coder.js';
 import { fixCode } from './agents/tester.js';
+import { installDependencies } from './agents/dependencyManager.js';
 
 async function runProject(idea, testCommand = '') {
     try {
         console.log(`\n🚀 INICIANDO LOVABLE 2.0: "${idea}"`);
         await initWorkspace();
 
-        // 1. Arquiteto cria o plano
+        // 1. Arquiteto planeja
         const plan = await planProject(idea);
 
-        // 2. Programador gera os arquivos
+        // 2. 🆕 Gerente de Dependências analisa e instala
+        await installDependencies(idea, plan.files);
+
+        // 3. Programador escreve os arquivos
         for (const file of plan.files) {
             const code = await generateCode(file.path, file.description, idea);
             await writeFile(file.path, code);
         }
 
-        console.log(`\n🎉 Fase de geração concluída! Arquivos salvos no workspace.`);
+        console.log(`\n🎉 Código gerado!`);
 
-        // 3. Execução e Self-Healing (se houver comando de teste)
+        // 4. 🆕 Cria o Snapshot de segurança (O código gerado cru, antes dos testes)
+        await gitSnapshot("Código inicial gerado pela IA");
+
+        // 5. Teste e Self-Healing
         if (testCommand) {
             console.log(`\n🧪 Iniciando testes automáticos...`);
             let isFixed = false;
@@ -31,33 +38,37 @@ async function runProject(idea, testCommand = '') {
                 const result = await runCommand(testCommand);
 
                 if (result.success) {
-                    console.log(`✅ Teste passou com sucesso na tentativa ${attempts}!\nOutput:\n${result.output}`);
+                    console.log(`✅ Teste passou na tentativa ${attempts}!\nOutput:\n${result.output}`);
+                    // Salva o snapshot final do código funcional
+                    await gitSnapshot("Código validado e funcional");
                     isFixed = true;
                 } else {
-                    console.log(`⚠️ Falha detectada (Tentativa ${attempts}/${MAX_ATTEMPTS}). Acionando Testador...`);
+                    console.log(`⚠️ Erro detectado (Tentativa ${attempts}/${MAX_ATTEMPTS}). Acionando Testador...`);
                     
-                    // Neste protótipo, assumimos correção no primeiro arquivo do projeto (pode ser expandido)
                     const targetFile = plan.files[0].path; 
                     const currentCode = await readFile(targetFile);
-                    
                     const fixedCode = await fixCode(targetFile, currentCode, result.output);
+                    
                     await writeFile(targetFile, fixedCode);
-                    console.log(`♻️ Código de ${targetFile} reescrito. Testando novamente...`);
+                    console.log(`♻️ Código reescrito. Testando novamente...`);
                 }
             }
 
+            // 6. 🆕 Rollback se o Self-Healing não der conta
             if (!isFixed) {
-                console.log(`❌ O Testador não conseguiu corrigir o projeto após ${MAX_ATTEMPTS} tentativas.`);
+                console.log(`❌ Testador esgotou as tentativas de correção.`);
+                console.log(`🔄 Restaurando projeto para a versão inicial do snapshot...`);
+                await gitRollback();
             }
         }
 
     } catch (error) {
-        console.error("\n❌ Fluxo interrompido por erro crítico:", error);
+        console.error("\n❌ Fluxo interrompido:", error);
     }
 }
 
-// 💥 Ponto de Entrada (Para rodar, basta executar: node src/orchestrator.js)
-const userInput = "Crie uma API REST simples em Node.js com Express que retorne 'Hello World' na rota /";
-const validationCommand = "node index.js"; // Comando para testar o código gerado
+// 💥 Ponto de Entrada
+const userInput = "Crie uma API REST simples em Node.js com Express que retorne 'Sistema Operacional da IA rodando!' na rota /status";
+const validationCommand = "node index.js"; 
 
 runProject(userInput, validationCommand);
