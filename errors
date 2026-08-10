@@ -1,48 +1,19 @@
-import express from 'express';
-import cors from 'cors';
-import path from 'path';
-import { fileURLToPath } from 'url';
-import { runLovableEngine } from './orchestrator.js'; 
+> node src/server.js\agent-ia\lovable-backend> cd src
+PS C:\Users\vrodr\ia\agent-ia\lovable-backend\src> notepad server.js
+file:///C:/Users/vrodr/ia/agent-ia/lovable-backend/src/services/puterService.js:1
+import { puter } from '@heyputer/puter.js';nd\src> cd ..
+         ^^^^^odr\ia\agent-ia\lovable-backend> npm start
+SyntaxError: The requested module '@heyputer/puter.js' does not provide an export named 'puter'
+    at #asyncInstantiate (node:internal/modules/esm/module_job:302:21)
+    at async ModuleJob.run (node:internal/modules/esm/module_job:405:5)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:654:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5)
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+Node.js v25.3.0
+PS C:\Users\vrodr\ia\agent-ia\lovable-backend>
 
-const app = express();
-app.use(express.json());
-app.use(cors());
 
-const publicPath = path.join(__dirname, '../public');
-app.use(express.static(publicPath));
 
-app.get('/', (req, res) => {
-    res.sendFile(path.join(publicPath, 'index.html'));
-});
 
-app.post('/api/build', async (req, res) => {
-    const { prompt } = req.body;
-    
-    if (!prompt) {
-        return res.status(400).json({ error: 'O prompt do projeto é obrigatório.' });
-    }
 
-    try {
-        console.log(`\n📥 [API Gateway] Solicitação recebida: "${prompt}"`);
-        
-        // Executa o motor e aguarda ele concluir a criação do projeto
-        await runLovableEngine(prompt, "node index.js");
-        
-        res.json({ 
-            success: true, 
-            message: `🎉 Projeto criado e validado com sucesso pelos agentes! Verifique a pasta workspace no seu projeto.` 
-        });
 
-    } catch (error) {
-        console.error("❌ Erro na API de build:", error);
-        res.status(500).json({ success: false, error: error.message });
-    }
-});
-
-const PORT = process.env.PORT || 3900;
-app.listen(PORT, () => {
-    console.log(`🌐 Servidor da Plataforma rodando em: http://localhost:${PORT}`);
-});
