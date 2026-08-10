@@ -1,36 +1,39 @@
-import { callAI } from '../services/puterService.js';
+PS C:\Users\vrodr\ia\agent-ia\lovable-backend\src> cd ..
+PS C:\Users\vrodr\ia\agent-ia\lovable-backend> npm start
 
-export async function planProject(contextString) {
-    const prompt = `Com base no contexto abaixo, retorne APENAS um JSON válido contendo o plano de arquivos do projeto:
-{
-    "files": [
-        {
-            "path": "src/server.js",
-            "description": "Servidor principal com rotas da API"
-        }
-    ]
-}
-Contexto: ${contextString}`;
+> lovable-backend@1.0.0 start
+> node src/server.js
 
-    try {
-        const response = await callAI(prompt);
-        if (!response) throw new Error("Resposta da IA veio vazia.");
+🌐 Servidor da Plataforma rodando em: http://localhost:3900
 
-        let cleaned = String(response).trim();
-        if (cleaned.startsWith('```')) {
-            cleaned = cleaned.replace(/^```(json)?/, '').replace(/```$/, '').trim();
-        }
+📥 [API Gateway] Solicitação recebida: "Crie um sistema de calculadora de frete em Node.js com endpoints para calcular prazos e valores com base no CEP."
 
-        return JSON.parse(cleaned);
-    } catch (error) {
-        console.warn("⚠️ Aviso no Arquiteto (usando plano de fallback):", error.message);
-        return {
-            files: [
-                {
-                    "path": "src/server.js",
-                    "description": "Servidor Express com endpoint de cálculo de frete"
-                }
-            ]
-        };
-    }
-}
+========================================
+🤖 LOVABLE 2.0 - PIPELINE MULTIAGENTE ATIVO
+========================================
+
+📂 Workspace garantido em: C:\Users\vrodr\ia\agent-ia\lovable-backend\workspace
+⚠️ Aviso no Requisitos (usando fallback): Resposta da IA veio vazia.
+📋 Objetivo: Crie um sistema de calculadora de frete em Node.js com endpoints para calcular prazos e valores com base no CEP.
+🎨 UI/UX: Desenhando especificações visuais...
+🔀 [Router] Tarefa 'planning' roteada para: openai/gpt-4o-mini
+🗄️ Banco de Dados: Projetando esquemas de persistência...
+🔀 [Router] Tarefa 'planning' roteada para: openai/gpt-4o-mini
+⚠️ Aviso no Arquiteto (usando plano de fallback): Resposta da IA veio vazia.
+
+📦 Gerente de Dependências: Analisando pacotes...
+🔀 [Router] Tarefa 'dependencies' roteada para: openai/gpt-4o-mini
+❌ O Gerente de Dependências falhou. TypeError: Cannot read properties of undefined (reading 'replace')
+    at installDependencies (file:///C:/Users/vrodr/ia/agent-ia/lovable-backend/src/agents/dependencyManager.js:24:39)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async runLovableEngine (file:///C:/Users/vrodr/ia/agent-ia/lovable-backend/src/orchestrator.js:46:9)
+    at async file:///C:/Users/vrodr/ia/agent-ia/lovable-backend/src/server.js:32:9
+💻 Programador: Escrevendo código para src/server.js...
+🔀 [Router] Tarefa 'coding' roteada para: deepseek-chat
+
+❌ Erro crítico no motor autônomo: TypeError: Cannot read properties of undefined (reading 'replace')
+    at generateCode (file:///C:/Users/vrodr/ia/agent-ia/lovable-backend/src/agents/coder.js:23:31)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async runLovableEngine (file:///C:/Users/vrodr/ia/agent-ia/lovable-backend/src/orchestrator.js:50:24)
+    at async file:///C:/Users/vrodr/ia/agent-ia/lovable-backend/src/server.js:32:9
+PS C:\Users\vrodr\ia\agent-ia\lovable-backend>
