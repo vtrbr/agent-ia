@@ -1,9 +1,12 @@
-> node src/server.js\agent-ia\lovable-backend> cd src
-PS C:\Users\vrodr\ia\agent-ia\lovable-backend\src> notepad server.js
-file:///C:/Users/vrodr/ia/agent-ia/lovable-backend/src/services/puterService.js:1
-import { puter } from '@heyputer/puter.js';nd\src> cd ..
-         ^^^^^odr\ia\agent-ia\lovable-backend> npm start
-SyntaxError: The requested module '@heyputer/puter.js' does not provide an export named 'puter'
+Node.js v25.3.0
+
+> lovable-backend@1.0.0 start\lovable-backend\src> cd services
+> node src/server.js\agent-ia\lovable-backend\src\services> notepad puterService.js
+PS C:\Users\vrodr\ia\agent-ia\lovable-backend\src\services> cd ;;
+file:///C:/Users/vrodr/ia/agent-ia/lovable-backend/src/server.js:5
+import { runLovableEngine } from './orchestrator.js'; ..
+         ^^^^^^^^^^^^^^^^t-ia\lovable-backend> npm start
+SyntaxError: The requested module './orchestrator.js' does not provide an export named 'runLovableEngine'
     at #asyncInstantiate (node:internal/modules/esm/module_job:302:21)
     at async ModuleJob.run (node:internal/modules/esm/module_job:405:5)
     at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:654:26)
@@ -11,9 +14,4 @@ SyntaxError: The requested module '@heyputer/puter.js' does not provide an expor
 
 Node.js v25.3.0
 PS C:\Users\vrodr\ia\agent-ia\lovable-backend>
-
-
-
-
-
 
