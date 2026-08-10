@@ -1,17 +1,44 @@
-Node.js v25.3.0
 
-> lovable-backend@1.0.0 start\lovable-backend\src> cd services
-> node src/server.js\agent-ia\lovable-backend\src\services> notepad puterService.js
-PS C:\Users\vrodr\ia\agent-ia\lovable-backend\src\services> cd ;;
-file:///C:/Users/vrodr/ia/agent-ia/lovable-backend/src/server.js:5
-import { runLovableEngine } from './orchestrator.js'; ..
-         ^^^^^^^^^^^^^^^^t-ia\lovable-backend> npm start
-SyntaxError: The requested module './orchestrator.js' does not provide an export named 'runLovableEngine'
-    at #asyncInstantiate (node:internal/modules/esm/module_job:302:21)
-    at async ModuleJob.run (node:internal/modules/esm/module_job:405:5)
-    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:654:26)
-    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5)
+> lovable-backend@1.0.0 start
+> node src/server.js
 
-Node.js v25.3.0
-PS C:\Users\vrodr\ia\agent-ia\lovable-backend>
+🌐 Servidor da Plataforma rodando em: http://localhost:3900
+
+📥 [API Gateway] Solicitação recebida: "Crie um sistema de calculadora de frete em Node.js com endpoints para calcular prazos e valores com base no CEP."
+
+========================================
+🤖 LOVABLE 2.0 - PIPELINE MULTIAGENTE ATIVO
+========================================
+
+📂 Workspace garantido em: C:\Users\vrodr\ia\agent-ia\lovable-backend\workspace
+
+📋 Analisador de Requisitos: Processando a solicitação do usuário...
+🔀 [Router] Tarefa 'planning' roteada para: openai/gpt-4o-mini
+❌ Erro ao processar requisitos. undefined
+
+❌ Erro crítico no motor autônomo: Error: Falha no parse do JSON de Requisitos.
+    at analyzeRequirements (file:///C:/Users/vrodr/ia/agent-ia/lovable-backend/src/agents/requirementsAnalyzer.js:32:15)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async runLovableEngine (file:///C:/Users/vrodr/ia/agent-ia/lovable-backend/src/orchestrator.js:28:30)
+    at async file:///C:/Users/vrodr/ia/agent-ia/lovable-backend/src/server.js:32:9
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
