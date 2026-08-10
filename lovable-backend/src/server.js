@@ -39,11 +39,11 @@ function requireProject(projectId) {
     });
 }
 
-async function enqueueBuild(project, prompt, testCommand) {
+async function enqueueBuild(project, prompt, testCommand, mode = 'initial') {
     const job = enqueueJob({
         projectId: project.id,
         prompt,
-        worker: ({ report }) => runLovableEngine(prompt, sanitizeTestCommand(testCommand), project.id, report),
+        worker: ({ report }) => runLovableEngine(prompt, sanitizeTestCommand(testCommand), project.id, report, { mode }),
     });
     await updateProject(project.id, { prompt, lastJobId: job.id });
     return job;
@@ -103,6 +103,18 @@ app.post('/api/projects/:projectId/build', async (req, res, next) => {
 });
 
 // Compatibilidade com o cliente original: cria projeto e inicia o build em uma única chamada.
+app.post('/api/projects/:projectId/iterate', async (req, res, next) => {
+    try {
+        const project = await requireProject(req.params.projectId);
+        const prompt = String(req.body?.prompt || '').trim();
+        if (!prompt) return res.status(400).json({ error: 'A solicitação de alteração é obrigatória.' });
+        const job = await enqueueBuild(project, prompt, req.body?.testCommand || 'node index.js', 'incremental');
+        res.status(202).json({ success: true, projectId: project.id, jobId: job.id, mode: 'incremental', status: job.status });
+    } catch (error) {
+        next(error);
+    }
+});
+
 app.post('/api/build', async (req, res, next) => {
     try {
         const prompt = String(req.body?.prompt || '').trim();

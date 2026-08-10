@@ -1,5 +1,5 @@
 import { 
-    initWorkspace, writeFile, readFile, runCommand, 
+    initWorkspace, writeFile, readFile, listFiles, runCommand,
     gitSnapshot, gitRollback, runTests
 } from './services/tools.js';
 import { analyzeRequirements } from './agents/requirementsAnalyzer.js';
@@ -14,20 +14,30 @@ import { saveProjectMemory, loadProjectMemory } from './services/memory.js';
 import { validatePlan } from './services/artifactValidator.js';
 
 // ✅ ADICIONADO O "export" AQUI PARA O SERVER.JS ENCONTRAR
-export async function runLovableEngine(rawIdea, testCommand = "node index.js", projectId = 'default', report = () => {}) {
+export async function runLovableEngine(rawIdea, testCommand = "node index.js", projectId = 'default', report = () => {}, options = {}) {
     try {
         console.log(`\n========================================`);
         console.log(`🤖 LOVABLE 2.0 - PIPELINE MULTIAGENTE ATIVO`);
         console.log(`========================================\n`);
 
         await initWorkspace(projectId);
-        report('pipeline.workspace.ready', { projectId });
+        const mode = options.mode === 'incremental' ? 'incremental' : 'initial';
+        report('pipeline.workspace.ready', { projectId, mode });
 
-        // 1. Memória
+        // 1. Memória e contexto dos artefatos existentes
         const memory = await loadProjectMemory(projectId);
+        const existingPaths = mode === 'incremental' ? await listFiles() : [];
+        const existingFiles = {};
+        for (const filePath of existingPaths.slice(0, 80)) {
+            const content = await readFile(filePath);
+            if (typeof content === 'string' && !content.startsWith('❌')) existingFiles[filePath] = content.slice(0, 12000);
+        }
 
         // 2. Análise de Requisitos
-        const requirements = await analyzeRequirements(rawIdea);
+        const requirementsPrompt = mode === 'incremental'
+            ? JSON.stringify({ changeRequest: rawIdea, existingFiles, memory: memory.iterations.slice(-5) })
+            : rawIdea;
+        const requirements = await analyzeRequirements(requirementsPrompt);
         report('agent.requirements.completed', { requirements });
         console.log(`📋 Objetivo: ${requirements.objective}`);
 
@@ -38,9 +48,11 @@ export async function runLovableEngine(rawIdea, testCommand = "node index.js", p
         report('agent.database.completed');
         
         const enrichedContext = {
+            mode,
             requirements,
             uiuxSpec,
-            dbSpec
+            dbSpec,
+            existingFiles
         };
         const contextString = JSON.stringify(enrichedContext);
 
@@ -112,11 +124,11 @@ export async function runLovableEngine(rawIdea, testCommand = "node index.js", p
         }
 
         // 8. Salva histórico na memória
-        memory.iterations.push({ idea: rawIdea, timestamp: new Date().toISOString(), projectId });
+        memory.iterations.push({ idea: rawIdea, mode, timestamp: new Date().toISOString(), projectId });
         await saveProjectMemory(memory, projectId);
 
         console.log(`\n✨ CICLO COMPLETO CONCLUÍDO COM SUCESSO! ✨\n`);
-        return { success: true, requirements, plan };
+        return { success: true, mode, requirements, plan };
 
     } catch (error) {
         console.error("\n❌ Erro crítico no motor autônomo:", error);
