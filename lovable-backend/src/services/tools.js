@@ -94,3 +94,45 @@ export async function editFile(fileName, oldText, newText) {
         return { success: false, message: `❌ Erro ao editar ${fileName}: ${error.message}` };
     }
 }
+// 🛠 FERRAMENTA 5: Listar todos os arquivos do Workspace
+export async function listFiles() {
+    try {
+        const entries = await fs.readdir(WORKSPACE_DIR, { recursive: true });
+        return entries.filter(e => !e.includes('node_modules') && !e.includes('.git'));
+    } catch (error) {
+        return [];
+    }
+}
+
+// 🛠 FERRAMENTA 6: Pesquisar código por palavra-chave ou função
+export async function searchCode(searchTerm) {
+    try {
+        const files = await listFiles();
+        const results = [];
+        
+        for (const file of files) {
+            const filePath = path.join(WORKSPACE_DIR, file);
+            const stats = await fs.stat(filePath);
+            if (stats.isFile()) {
+                const content = await fs.readFile(filePath, 'utf-8');
+                if (content.includes(searchTerm)) {
+                    results.push(file);
+                }
+            }
+        }
+        return results;
+    } catch (error) {
+        return [];
+    }
+}
+
+// 🛠 FERRAMENTA 7: Deletar arquivo se necessário
+export async function deleteFile(fileName) {
+    try {
+        const filePath = path.join(WORKSPACE_DIR, fileName);
+        await fs.unlink(filePath);
+        return `🗑️ Arquivo ${fileName} removido com sucesso.`;
+    } catch (error) {
+        return `❌ Erro ao remover ${fileName}: ${error.message}`;
+    }
+}
