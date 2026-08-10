@@ -13,7 +13,7 @@ app.use(express.json());
 app.use(cors());
 
 // Servir a interface estática da pasta public (que vamos criar a seguir)
-app.use(express.static(path.join(__dirname, '../public')));
+app.use(express.static(path.join(__dirname, '../../public')));
 
 // Rota principal onde o Chat vai enviar o comando do usuário
 app.post('/api/build', async (req, res) => {
