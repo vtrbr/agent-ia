@@ -1,34 +1,49 @@
 import { initWorkspace, writeFile, readFile, runCommand, gitSnapshot, gitRollback } from './services/tools.js';
+import { analyzeRequirements } from './agents/requirementsAnalyzer.js'; // 🆕 Novo agente na ponta
 import { planProject } from './agents/architect.js';
 import { generateCode } from './agents/coder.js';
 import { fixCode } from './agents/tester.js';
 import { installDependencies } from './agents/dependencyManager.js';
+import { auditCode } from './agents/security.js';
 
-async function runProject(idea, testCommand = '') {
+async function runProject(rawIdea, testCommand = '') {
     try {
-        console.log(`\n🚀 INICIANDO LOVABLE 2.0: "${idea}"`);
+        console.log(`\n🚀 INICIANDO LOVABLE 2.0 (Pipeline Completo)`);
         await initWorkspace();
 
-        // 1. Arquiteto planeja
-        const plan = await planProject(idea);
+        // 1. 🆕 Analisa e expande os requisitos do usuário
+        const requirements = await analyzeRequirements(rawIdea);
+        console.log(`💡 Objetivo estruturado: ${requirements.objective}`);
 
-        // 2. 🆕 Gerente de Dependências analisa e instala
-        await installDependencies(idea, plan.files);
+        // 2. Arquiteto planeja com base nos requisitos detalhados
+        const plan = await planProject(JSON.stringify(requirements));
 
-        // 3. Programador escreve os arquivos
+        // 3. Gerente de Dependências instala pacotes necessários
+        const projectContext = JSON.stringify(requirements);
+        await installDependencies(projectContext, plan.files);
+
+        // 4. Programador escreve e Segurança audita cada arquivo
         for (const file of plan.files) {
-            const code = await generateCode(file.path, file.description, idea);
+            let code = await generateCode(file.path, file.description, projectContext);
+            
+            // Auditoria AppSec
+            const securityCheck = await auditCode(file.path, code);
+            if (securityCheck !== "SEGURO") {
+                console.log(`⚠️ Falha de segurança em ${file.path}. Aplicando correção blindada.`);
+                code = securityCheck;
+            } else {
+                console.log(`✅ ${file.path} aprovado na segurança.`);
+            }
+
             await writeFile(file.path, code);
         }
 
-        console.log(`\n🎉 Código gerado!`);
+        console.log(`\n🎉 Todos os arquivos foram gerados e auditados.`);
+        await gitSnapshot("Snapshot inicial estruturado");
 
-        // 4. 🆕 Cria o Snapshot de segurança (O código gerado cru, antes dos testes)
-        await gitSnapshot("Código inicial gerado pela IA");
-
-        // 5. Teste e Self-Healing
+        // 5. Testes e Self-Healing Automático
         if (testCommand) {
-            console.log(`\n🧪 Iniciando testes automáticos...`);
+            console.log(`\n🧪 Executando validação de testes...`);
             let isFixed = false;
             let attempts = 0;
             const MAX_ATTEMPTS = 3;
@@ -38,37 +53,34 @@ async function runProject(idea, testCommand = '') {
                 const result = await runCommand(testCommand);
 
                 if (result.success) {
-                    console.log(`✅ Teste passou na tentativa ${attempts}!\nOutput:\n${result.output}`);
-                    // Salva o snapshot final do código funcional
-                    await gitSnapshot("Código validado e funcional");
+                    console.log(`✅ Testes aprovados na tentativa ${attempts}!\nOutput:\n${result.output}`);
+                    await gitSnapshot("Snapshot final validado");
                     isFixed = true;
                 } else {
-                    console.log(`⚠️ Erro detectado (Tentativa ${attempts}/${MAX_ATTEMPTS}). Acionando Testador...`);
+                    console.log(`⚠️ Erro capturado (Tentativa ${attempts}/${MAX_ATTEMPTS}). Acionando Testador...`);
                     
                     const targetFile = plan.files[0].path; 
                     const currentCode = await readFile(targetFile);
                     const fixedCode = await fixCode(targetFile, currentCode, result.output);
                     
                     await writeFile(targetFile, fixedCode);
-                    console.log(`♻️ Código reescrito. Testando novamente...`);
+                    console.log(`♻️ Código corrigido. Reexecutando testes...`);
                 }
             }
 
-            // 6. 🆕 Rollback se o Self-Healing não der conta
             if (!isFixed) {
-                console.log(`❌ Testador esgotou as tentativas de correção.`);
-                console.log(`🔄 Restaurando projeto para a versão inicial do snapshot...`);
+                console.log(`❌ Limite de correções atingido. Revertendo para o snapshot seguro...`);
                 await gitRollback();
             }
         }
 
     } catch (error) {
-        console.error("\n❌ Fluxo interrompido:", error);
+        console.error("\n❌ Erro crítico no fluxo principal:", error);
     }
 }
 
-// 💥 Ponto de Entrada
-const userInput = "Crie uma API REST simples em Node.js com Express que retorne 'Sistema Operacional da IA rodando!' na rota /status";
+// 💥 Ponto de Entrada do Sistema
+const userInput = "Crie um sistema simples de gerenciamento de tarefas (Todo List) em Node.js usando Express";
 const validationCommand = "node index.js"; 
 
 runProject(userInput, validationCommand);
