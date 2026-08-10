@@ -2,64 +2,164 @@ import express from 'express';
 import cors from 'cors';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { randomUUID } from 'crypto';
 import { runLovableEngine } from './orchestrator.js';
+import { createProject, getProject, listProjects, updateProject } from './services/projectStore.js';
+import { enqueueJob, getJob, listProjectJobs, subscribeJob } from './services/jobQueue.js';
+import { getWorkspaceDir, listFiles, setWorkspace } from './services/tools.js';
+import fs from 'fs/promises';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-
 const app = express();
-const jobs = new Map();
-app.use(express.json());
-app.use(cors());
 
-// Servir a interface estática da pasta public (que vamos criar a seguir)
+app.use(express.json({ limit: '1mb' }));
+app.use(cors());
 app.use(express.static(path.join(__dirname, '../../public')));
 
-// Rota principal onde o Chat vai enviar o comando do usuário
-app.post('/api/build', async (req, res) => {
-    const { prompt } = req.body;
-    
-    if (!prompt) {
-        return res.status(400).json({ error: 'O prompt do projeto é obrigatório.' });
-    }
+function sanitizeTestCommand(command) {
+    const value = String(command || 'node index.js').trim();
+    if (value === 'npm test' || value === 'npm run test') return value;
+    if (/^node\s+[a-zA-Z0-9_./-]+$/.test(value)) return value;
+    throw Object.assign(new Error('Comando de teste não permitido.'), { statusCode: 400 });
+}
 
+function requireProject(projectId) {
+    return getProject(projectId).then((project) => {
+        if (!project) {
+            const error = new Error('Projeto não encontrado.');
+            error.statusCode = 404;
+            throw error;
+        }
+        return project;
+    });
+}
+
+async function enqueueBuild(project, prompt, testCommand) {
+    const job = enqueueJob({
+        projectId: project.id,
+        prompt,
+        worker: ({ report }) => runLovableEngine(prompt, sanitizeTestCommand(testCommand), project.id, report),
+    });
+    await updateProject(project.id, { prompt, lastJobId: job.id });
+    return job;
+}
+
+app.get('/api/health', (req, res) => {
+    res.json({ ok: true, service: 'agent-ia', version: '3.0.0' });
+});
+
+app.get('/api/projects', async (req, res, next) => {
     try {
-        console.log(`\n📥 [API Gateway] Nova solicitação recebida: "${prompt}"`);
-        
-        const jobId = randomUUID();
-        jobs.set(jobId, { id: jobId, prompt, status: 'queued', createdAt: new Date().toISOString() });
-        res.status(202).json({ success: true, jobId, status: 'queued' });
-
-        setImmediate(async () => {
-            const job = jobs.get(jobId);
-            if (!job) return;
-            job.status = 'running';
-            job.startedAt = new Date().toISOString();
-            try {
-                await runLovableEngine(prompt);
-                job.status = 'completed';
-                job.completedAt = new Date().toISOString();
-            } catch (error) {
-                job.status = 'failed';
-                job.error = error.message;
-                console.error(`❌ [Job ${jobId}]`, error);
-            }
-        });
-
+        res.json({ projects: await listProjects() });
     } catch (error) {
-        console.error("❌ Erro na API de build:", error);
-        res.status(500).json({ success: false, error: error.message });
+        next(error);
+    }
+});
+
+app.post('/api/projects', async (req, res, next) => {
+    try {
+        const { name, prompt = '' } = req.body || {};
+        if (!name || typeof name !== 'string') return res.status(400).json({ error: 'O nome do projeto é obrigatório.' });
+        const project = await createProject({ name, prompt });
+        res.status(201).json(project);
+    } catch (error) {
+        next(error);
+    }
+});
+
+app.get('/api/projects/:projectId', async (req, res, next) => {
+    try {
+        const project = await requireProject(req.params.projectId);
+        res.json({ ...project, jobs: listProjectJobs(project.id) });
+    } catch (error) {
+        next(error);
+    }
+});
+
+app.post('/api/projects/:projectId/build', async (req, res, next) => {
+    try {
+        const project = await requireProject(req.params.projectId);
+        const prompt = String(req.body?.prompt || project.prompt || '').trim();
+        if (!prompt) return res.status(400).json({ error: 'O prompt do projeto é obrigatório.' });
+        const job = await enqueueBuild(project, prompt, req.body?.testCommand || 'node index.js');
+        res.status(202).json({ success: true, projectId: project.id, jobId: job.id, status: job.status });
+    } catch (error) {
+        next(error);
+    }
+});
+
+// Compatibilidade com o cliente original: cria projeto e inicia o build em uma única chamada.
+app.post('/api/build', async (req, res, next) => {
+    try {
+        const prompt = String(req.body?.prompt || '').trim();
+        if (!prompt) return res.status(400).json({ error: 'O prompt do projeto é obrigatório.' });
+        const project = await createProject({ name: prompt.slice(0, 60), prompt });
+        const job = await enqueueBuild(project, prompt, req.body?.testCommand || 'node index.js');
+        res.status(202).json({ success: true, projectId: project.id, jobId: job.id, status: job.status });
+    } catch (error) {
+        next(error);
+    }
+});
+
+app.get('/api/projects/:projectId/jobs', async (req, res, next) => {
+    try {
+        const project = await requireProject(req.params.projectId);
+        res.json({ jobs: listProjectJobs(project.id) });
+    } catch (error) {
+        next(error);
     }
 });
 
 app.get('/api/build/:jobId', (req, res) => {
-    const job = jobs.get(req.params.jobId);
+    const job = getJob(req.params.jobId);
     if (!job) return res.status(404).json({ error: 'Job não encontrado.' });
     res.json(job);
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log(`🌐 Servidor da Plataforma rodando em: http://localhost:${PORT}`);
+app.get('/api/build/:jobId/events', (req, res) => {
+    const job = getJob(req.params.jobId);
+    if (!job) return res.status(404).json({ error: 'Job não encontrado.' });
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+    res.flushHeaders();
+    for (const event of job.events) res.write(`id: ${event.id}\nevent: ${event.event}\ndata: ${JSON.stringify(event.data)}\n\n`);
+    if (['completed', 'failed'].includes(job.status)) return res.end();
+    const unsubscribe = subscribeJob(job.id, (event) => {
+        res.write(`id: ${event.id}\nevent: ${event.event}\ndata: ${JSON.stringify(event.data)}\n\n`);
+        if (['job.completed', 'job.failed'].includes(event.event)) res.end();
+    });
+    req.on('close', unsubscribe);
 });
+
+app.get('/api/projects/:projectId/files', async (req, res, next) => {
+    try {
+        const project = await requireProject(req.params.projectId);
+        setWorkspace(project.id);
+        res.json({ projectId: project.id, files: await listFiles() });
+    } catch (error) {
+        next(error);
+    }
+});
+
+app.get('/api/projects/:projectId/files/*', async (req, res, next) => {
+    try {
+        const project = await requireProject(req.params.projectId);
+        setWorkspace(project.id);
+        const relativePath = req.params[0];
+        const root = path.resolve(getWorkspaceDir());
+        const filePath = path.resolve(root, relativePath);
+        if (!filePath.startsWith(`${root}${path.sep}`)) return res.status(400).json({ error: 'Caminho inválido.' });
+        res.type(path.extname(filePath) || 'text/plain').send(await fs.readFile(filePath, 'utf8'));
+    } catch (error) {
+        next(error);
+    }
+});
+
+app.use((error, req, res, next) => {
+    console.error('❌ API error:', error);
+    res.status(error.statusCode || 500).json({ error: error.message || 'Erro interno.' });
+});
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`🌐 Agent-IA Platform rodando em http://localhost:${PORT}`));

@@ -4,20 +4,43 @@ import { exec, spawn } from 'child_process';
 import { promisify } from 'util';
 
 const execAsync = promisify(exec);
-const WORKSPACE_DIR = path.join(process.cwd(), 'workspace');
+const WORKSPACE_ROOT = path.join(process.cwd(), 'workspace');
+let workspaceDir = WORKSPACE_ROOT;
+
+export function setWorkspace(projectId = 'default') {
+    if (!/^[a-zA-Z0-9_-]+$/.test(projectId)) {
+        throw new Error('Identificador de projeto inválido.');
+    }
+    workspaceDir = path.join(WORKSPACE_ROOT, projectId);
+    return workspaceDir;
+}
+
+export function getWorkspaceDir() {
+    return workspaceDir;
+}
+
+function safeWorkspacePath(fileName) {
+    const root = path.resolve(workspaceDir);
+    const target = path.resolve(root, String(fileName));
+    if (target !== root && !target.startsWith(`${root}${path.sep}`)) {
+        throw new Error('Caminho de arquivo fora do workspace.');
+    }
+    return target;
+}
 
 let activeServerProcess = null;
 
 // Inicializa o diretório de trabalho isolado
-export async function initWorkspace() {
-    await fs.mkdir(WORKSPACE_DIR, { recursive: true });
-    console.log(`📂 Workspace garantido em: ${WORKSPACE_DIR}`);
+export async function initWorkspace(projectId = 'default') {
+    setWorkspace(projectId);
+    await fs.mkdir(workspaceDir, { recursive: true });
+    console.log(`📂 Workspace garantido em: ${workspaceDir}`);
 }
 
 // 🛠 FERRAMENTA 1: Criar ou Substituir Arquivo
 export async function writeFile(fileName, content) {
     try {
-        const filePath = path.join(WORKSPACE_DIR, fileName);
+        const filePath = safeWorkspacePath(fileName);
         await fs.mkdir(path.dirname(filePath), { recursive: true });
         await fs.writeFile(filePath, content, 'utf-8');
         return `✅ Arquivo ${fileName} salvo com sucesso.`;
@@ -29,7 +52,7 @@ export async function writeFile(fileName, content) {
 // 🛠 FERRAMENTA 2: Ler Arquivo Existente
 export async function readFile(fileName) {
     try {
-        const filePath = path.join(WORKSPACE_DIR, fileName);
+        const filePath = safeWorkspacePath(fileName);
         const content = await fs.readFile(filePath, 'utf-8');
         return content;
     } catch (error) {
@@ -40,7 +63,7 @@ export async function readFile(fileName) {
 // 🛠 FERRAMENTA 3: Aplicar Alteração Localizada (Edição Incremental / Patch)
 export async function editFile(fileName, oldText, newText) {
     try {
-        const filePath = path.join(WORKSPACE_DIR, fileName);
+        const filePath = safeWorkspacePath(fileName);
         let content = await fs.readFile(filePath, 'utf-8');
         
         if (!content.includes(oldText)) {
@@ -64,7 +87,7 @@ export async function editFile(fileName, oldText, newText) {
 // 🛠 FERRAMENTA 4: Remover Arquivo
 export async function deleteFile(fileName) {
     try {
-        const filePath = path.join(WORKSPACE_DIR, fileName);
+        const filePath = safeWorkspacePath(fileName);
         await fs.unlink(filePath);
         return `🗑️ Arquivo ${fileName} removido com sucesso.`;
     } catch (error) {
@@ -75,7 +98,7 @@ export async function deleteFile(fileName) {
 // 🛠 FERRAMENTA 5: Listar Estrutura de Arquivos do Projeto
 export async function listFiles() {
     try {
-        const entries = await fs.readdir(WORKSPACE_DIR, { recursive: true });
+        const entries = await fs.readdir(workspaceDir, { recursive: true });
         return entries.filter(e => !e.includes('node_modules') && !e.includes('.git'));
     } catch (error) {
         return [];
@@ -89,7 +112,7 @@ export async function searchCode(searchTerm) {
         const results = [];
         
         for (const file of files) {
-            const filePath = path.join(WORKSPACE_DIR, file);
+            const filePath = safeWorkspacePath(file);
             const stats = await fs.stat(filePath);
             if (stats.isFile()) {
                 const content = await fs.readFile(filePath, 'utf-8');
@@ -108,7 +131,7 @@ export async function searchCode(searchTerm) {
 export async function runCommand(command) {
     try {
         console.log(`\n⚙️ Terminal: ${command}`);
-        const { stdout, stderr } = await execAsync(command, { cwd: WORKSPACE_DIR });
+        const { stdout, stderr } = await execAsync(command, { cwd: workspaceDir });
         
         if (stderr && !stderr.toLowerCase().includes('warn')) {
             return { success: false, output: stderr }; 
@@ -123,7 +146,7 @@ export async function runCommand(command) {
 export async function runTests(testCommand = "npm test") {
     try {
         console.log(`🧪 Rodando testes: ${testCommand}`);
-        const { stdout, stderr } = await execAsync(testCommand, { cwd: WORKSPACE_DIR });
+        const { stdout, stderr } = await execAsync(testCommand, { cwd: workspaceDir });
         return { success: true, output: stdout || stderr };
     } catch (error) {
         return { success: false, output: error.message };
@@ -142,7 +165,7 @@ export async function startServer(command = "node index.js") {
         const [cmd, ...args] = command.split(' ');
         
         activeServerProcess = spawn(cmd, args, { 
-            cwd: WORKSPACE_DIR, 
+            cwd: workspaceDir, 
             shell: true,
             stdio: 'inherit'
         });
@@ -175,9 +198,9 @@ export async function stopServer() {
 // 🛠 FERRAMENTA 11: Criar Ponto de Restauração (Snapshot Git)
 export async function gitSnapshot(commitMessage = "Snapshot automático") {
     try {
-        await execAsync('git init', { cwd: WORKSPACE_DIR });
-        await execAsync('git add .', { cwd: WORKSPACE_DIR });
-        await execAsync(`git commit -m "${commitMessage}"`, { cwd: WORKSPACE_DIR });
+        await execAsync('git init', { cwd: workspaceDir });
+        await execAsync('git add .', { cwd: workspaceDir });
+        await execAsync(`git commit -m "${commitMessage}"`, { cwd: workspaceDir });
         console.log(`📸 Snapshot salvo: ${commitMessage}`);
         return true;
     } catch (error) {
@@ -189,7 +212,7 @@ export async function gitSnapshot(commitMessage = "Snapshot automático") {
 // 🛠 FERRAMENTA 12: Restaurar Estado Anterior (Rollback Git)
 export async function gitRollback() {
     try {
-        await execAsync('git reset --hard HEAD~1', { cwd: WORKSPACE_DIR });
+        await execAsync('git reset --hard HEAD~1', { cwd: workspaceDir });
         console.log(`⏪ Rollback executado. Projeto restaurado!`);
         return true;
     } catch (error) {

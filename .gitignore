@@ -1,4 +1,5 @@
 lovable-backend/node_modules/
 lovable-backend/workspace/
+lovable-backend/data/
 *.log
 .DS_Store

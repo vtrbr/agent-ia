@@ -1,6 +1,6 @@
 import { 
     initWorkspace, writeFile, readFile, runCommand, 
-    gitSnapshot, gitRollback, runTests 
+    gitSnapshot, gitRollback, runTests
 } from './services/tools.js';
 import { analyzeRequirements } from './agents/requirementsAnalyzer.js';
 import { specifyUIUX } from './agents/uiux.js';
@@ -13,24 +13,28 @@ import { auditCode } from './agents/security.js';
 import { saveProjectMemory, loadProjectMemory } from './services/memory.js';
 
 // ✅ ADICIONADO O "export" AQUI PARA O SERVER.JS ENCONTRAR
-export async function runLovableEngine(rawIdea, testCommand = "node index.js") {
+export async function runLovableEngine(rawIdea, testCommand = "node index.js", projectId = 'default', report = () => {}) {
     try {
         console.log(`\n========================================`);
         console.log(`🤖 LOVABLE 2.0 - PIPELINE MULTIAGENTE ATIVO`);
         console.log(`========================================\n`);
 
-        await initWorkspace();
+        await initWorkspace(projectId);
+        report('pipeline.workspace.ready', { projectId });
 
         // 1. Memória
-        const memory = await loadProjectMemory();
+        const memory = await loadProjectMemory(projectId);
 
         // 2. Análise de Requisitos
         const requirements = await analyzeRequirements(rawIdea);
+        report('agent.requirements.completed', { requirements });
         console.log(`📋 Objetivo: ${requirements.objective}`);
 
         // 3. Especificações de UI/UX e Banco de Dados
         const uiuxSpec = await specifyUIUX(requirements);
+        report('agent.uiux.completed');
         const dbSpec = await specifyDatabase(requirements);
+        report('agent.database.completed');
         
         const enrichedContext = {
             requirements,
@@ -41,6 +45,7 @@ export async function runLovableEngine(rawIdea, testCommand = "node index.js") {
 
         // 4. Arquiteto planeja considerando UI/UX e Banco
         const plan = await planProject(contextString);
+        report('agent.architect.completed', { files: plan?.files?.map((file) => file.path) || [] });
 
         if (!plan || !Array.isArray(plan.files) || plan.files.length === 0) {
             throw new Error('O arquiteto não retornou um plano de arquivos válido.');
@@ -48,13 +53,16 @@ export async function runLovableEngine(rawIdea, testCommand = "node index.js") {
 
         // 5. Gerenciamento de Dependências
         await installDependencies(contextString, plan.files);
+        report('agent.dependencies.completed');
 
         // 6. Geração e Auditoria de Segurança por Arquivo
         for (const file of plan.files) {
+            report('agent.coder.started', { path: file.path });
             let code = await generateCode(file.path, file.description, contextString);
             
             // Segurança (AppSec)
             const securityCheck = await auditCode(file.path, code);
+            report('agent.security.completed', { path: file.path, changed: securityCheck !== 'SEGURO' });
             if (securityCheck !== "SEGURO") {
                 console.log(`⚠️ Falha de segurança neutralizada em ${file.path}`);
                 code = securityCheck;
@@ -63,6 +71,7 @@ export async function runLovableEngine(rawIdea, testCommand = "node index.js") {
             }
 
             await writeFile(file.path, code);
+            report('agent.file.generated', { path: file.path });
         }
 
         console.log(`\n🎉 Arquivos gerados, blindados e salvos.`);
@@ -77,7 +86,9 @@ export async function runLovableEngine(rawIdea, testCommand = "node index.js") {
 
             while (!isFixed && attempts < MAX_ATTEMPTS) {
                 attempts++;
+                report('agent.tester.started', { attempt: attempts, maxAttempts: MAX_ATTEMPTS });
                 const result = await runTests(testCommand);
+                report('agent.tester.completed', { attempt: attempts, success: result.success });
 
                 if (result.success && !result.output.includes("ERR")) {
                     console.log(`✅ Testes e execução validados com sucesso!`);
@@ -89,6 +100,7 @@ export async function runLovableEngine(rawIdea, testCommand = "node index.js") {
                     const targetFile = plan.files[0].path; 
                     const currentCode = await readFile(targetFile);
                     const fixedCode = await fixCode(targetFile, currentCode, result.output);
+                    report('agent.self_healing.applied', { path: targetFile, attempt: attempts });
                     
                     await writeFile(targetFile, fixedCode);
                     console.log(`♻️ Código corrigido. Reexecutando...`);
@@ -102,8 +114,8 @@ export async function runLovableEngine(rawIdea, testCommand = "node index.js") {
         }
 
         // 8. Salva histórico na memória
-        memory.iterations.push({ idea: rawIdea, timestamp: new Date().toISOString() });
-        await saveProjectMemory(memory);
+        memory.iterations.push({ idea: rawIdea, timestamp: new Date().toISOString(), projectId });
+        await saveProjectMemory(memory, projectId);
 
         console.log(`\n✨ CICLO COMPLETO CONCLUÍDO COM SUCESSO! ✨\n`);
         return { success: true, requirements, plan };

@@ -1,19 +1,25 @@
 import fs from 'fs/promises';
 import path from 'path';
 
-const MEMORY_FILE = path.join(process.cwd(), 'workspace', '.lovable_memory.json');
+const MEMORY_ROOT = path.join(process.cwd(), 'workspace');
 
-export async function saveProjectMemory(historyData) {
+function memoryFile(projectId = 'default') {
+    if (!/^[a-zA-Z0-9_-]+$/.test(projectId)) throw new Error('Identificador de projeto inválido.');
+    return path.join(MEMORY_ROOT, projectId, '.lovable_memory.json');
+}
+
+export async function saveProjectMemory(historyData, projectId = 'default') {
     try {
-        await fs.writeFile(MEMORY_FILE, JSON.stringify(historyData, null, 2), 'utf-8');
+        await fs.mkdir(path.dirname(memoryFile(projectId)), { recursive: true });
+        await fs.writeFile(memoryFile(projectId), JSON.stringify(historyData, null, 2), 'utf-8');
     } catch (error) {
         // Workspace pode não ter sido criado ainda
     }
 }
 
-export async function loadProjectMemory() {
+export async function loadProjectMemory(projectId = 'default') {
     try {
-        const data = await fs.readFile(MEMORY_FILE, 'utf-8');
+        const data = await fs.readFile(memoryFile(projectId), 'utf-8');
         return JSON.parse(data);
     } catch (error) {
         return { iterations: [], currentFiles: [] };
