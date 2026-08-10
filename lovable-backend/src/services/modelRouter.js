@@ -4,12 +4,12 @@
  */
 export function getBestModelForTask(taskType) {
     const routes = {
-        'planning': 'openai/gpt-4o-mini',       // Rápido e excelente para gerar JSONs estruturados
-        'coding': 'deepseek-chat',              // Imbatível em custo-benefício para escrever código bruto
-        'dependencies': 'openai/gpt-4o-mini',   // Tarefa simples, modelo rápido
-        'debugging': 'google/gemini-2.5-flash', // Janela de contexto gigante, ótimo para ler logs de erro enormes
-        'security': 'openai/gpt-4o',            // Raciocínio complexo necessário para caçar vulnerabilidades
-        'default': 'openai/gpt-4o-mini'
+        planning: process.env.PUTER_MODEL_PLANNING || 'gpt-5.4-nano',
+        coding: process.env.PUTER_MODEL_CODING || 'deepseek-chat',
+        dependencies: process.env.PUTER_MODEL_DEPENDENCIES || 'gpt-5.4-nano',
+        debugging: process.env.PUTER_MODEL_DEBUGGING || 'google/gemini-2.5-flash',
+        security: process.env.PUTER_MODEL_SECURITY || 'gpt-5.4-nano',
+        default: process.env.PUTER_MODEL_DEFAULT || 'gpt-5.4-nano'
     };
 
     const selectedModel = routes[taskType] || routes['default'];

@@ -11,6 +11,7 @@ import { fixCode } from './agents/tester.js';
 import { installDependencies } from './agents/dependencyManager.js';
 import { auditCode } from './agents/security.js';
 import { saveProjectMemory, loadProjectMemory } from './services/memory.js';
+import { validatePlan } from './services/artifactValidator.js';
 
 // ✅ ADICIONADO O "export" AQUI PARA O SERVER.JS ENCONTRAR
 export async function runLovableEngine(rawIdea, testCommand = "node index.js", projectId = 'default', report = () => {}) {
@@ -44,12 +45,9 @@ export async function runLovableEngine(rawIdea, testCommand = "node index.js", p
         const contextString = JSON.stringify(enrichedContext);
 
         // 4. Arquiteto planeja considerando UI/UX e Banco
-        const plan = await planProject(contextString);
-        report('agent.architect.completed', { files: plan?.files?.map((file) => file.path) || [] });
-
-        if (!plan || !Array.isArray(plan.files) || plan.files.length === 0) {
-            throw new Error('O arquiteto não retornou um plano de arquivos válido.');
-        }
+        const rawPlan = await planProject(contextString);
+        const plan = validatePlan(rawPlan);
+        report('agent.architect.completed', { files: plan.files.map((file) => file.path) });
 
         // 5. Gerenciamento de Dependências
         await installDependencies(contextString, plan.files);

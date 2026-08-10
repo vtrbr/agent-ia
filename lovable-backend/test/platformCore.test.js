@@ -2,12 +2,19 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { initWorkspace, writeFile, getWorkspaceDir } from '../src/services/tools.js';
 import { enqueueJob, getJob } from '../src/services/jobQueue.js';
+import { validatePlan } from '../src/services/artifactValidator.js';
 
 test('impede escrita fora do workspace do projeto', async () => {
     await initWorkspace('test-project');
     const result = await writeFile('../escape.txt', 'não deve sair');
     assert.match(result, /Erro ao salvar/);
     assert.equal(getWorkspaceDir().endsWith('/workspace/test-project'), true);
+});
+
+test('valida o plano de artefatos contra caminhos perigosos e duplicados', () => {
+    assert.throws(() => validatePlan({ files: [{ path: '../secret', description: 'x' }] }), /Caminho inválido/);
+    assert.throws(() => validatePlan({ files: [{ path: 'a.js', description: 'x' }, { path: 'a.js', description: 'y' }] }), /duplicados/);
+    assert.deepEqual(validatePlan({ files: [{ path: 'src/index.js', description: 'entrada' }] }).files, [{ path: 'src/index.js', description: 'entrada' }]);
 });
 
 test('processa job e emite evento de conclusão', async () => {
