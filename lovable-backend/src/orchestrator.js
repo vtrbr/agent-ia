@@ -12,7 +12,8 @@ import { installDependencies } from './agents/dependencyManager.js';
 import { auditCode } from './agents/security.js';
 import { saveProjectMemory, loadProjectMemory } from './services/memory.js';
 
-async function runLovableEngine(rawIdea, testCommand = "node index.js") {
+// ✅ ADICIONADO O "export" AQUI PARA O SERVER.JS ENCONTRAR
+export async function runLovableEngine(rawIdea, testCommand = "node index.js") {
     try {
         console.log(`\n========================================`);
         console.log(`🤖 LOVABLE 2.0 - PIPELINE MULTIAGENTE ATIVO`);
@@ -27,7 +28,7 @@ async function runLovableEngine(rawIdea, testCommand = "node index.js") {
         const requirements = await analyzeRequirements(rawIdea);
         console.log(`📋 Objetivo: ${requirements.objective}`);
 
-        // 3. Especificações de UI/UX e Banco de Dados (Novos Agentes)
+        // 3. Especificações de UI/UX e Banco de Dados
         const uiuxSpec = await specifyUIUX(requirements);
         const dbSpec = await specifyDatabase(requirements);
         
@@ -106,9 +107,3 @@ async function runLovableEngine(rawIdea, testCommand = "node index.js") {
         console.error("\n❌ Erro crítico no motor autônomo:", error);
     }
 }
-
-// 💥 Ponto de Entrada do Sistema
-const userInput = "Crie uma aplicação fullstack simples de notas com backend em Node.js e banco SQLite";
-const validationCommand = "node index.js"; 
-
-runLovableEngine(userInput, validationCommand);
