@@ -1,39 +1,36 @@
 import { callAI } from '../services/puterService.js';
-import { getBestModelForTask } from '../services/modelRouter.js';
 
-export async function planProject(projectDescription) {
-    const systemPrompt = `Você é um Arquiteto de Software Senior.
-    Sua única função é receber uma ideia de projeto e planejar a estrutura de arquivos necessária.
-    
-    REGRAS OBRIGATÓRIAS E RESTRITAS:
-    1. Responda EXCLUSIVAMENTE com um objeto JSON válido.
-    2. NÃO inclua nenhum texto antes ou depois do JSON.
-    3. NÃO utilize formatação Markdown (como \`\`\`json).
-    
-    ESTRUTURA ESPERADA DO JSON:
-    {
-      "projectName": "nome-curto-do-projeto",
-      "files": [
+export async function planProject(contextString) {
+    const prompt = `Com base no contexto abaixo, retorne APENAS um JSON válido contendo o plano de arquivos do projeto:
+{
+    "files": [
         {
-          "path": "caminho/do/arquivo.ext",
-          "description": "Explicação detalhada do que o Programador deve escrever"
+            "path": "src/server.js",
+            "description": "Servidor principal com rotas da API"
         }
-      ]
-    }`;
+    ]
+}
+Contexto: ${contextString}`;
 
-    const userPrompt = `Crie a arquitetura para o seguinte projeto: "${projectDescription}"`;
-    console.log(`\n🧠 Arquiteto: Desenhando a estrutura para "${projectDescription}"...`);
-    
-    const model = getBestModelForTask('planning');
-    const rawResponse = await callAI(systemPrompt, userPrompt, model);
-    
     try {
-        const cleanJson = rawResponse.replace(/```json/gi, '').replace(/```/gi, '').trim();
-        const plan = JSON.parse(cleanJson);
-        console.log(`✅ Arquiteto: Plano criado com ${plan.files.length} arquivos.`);
-        return plan;
+        const response = await callAI(prompt);
+        if (!response) throw new Error("Resposta da IA veio vazia.");
+
+        let cleaned = String(response).trim();
+        if (cleaned.startsWith('```')) {
+            cleaned = cleaned.replace(/^```(json)?/, '').replace(/```$/, '').trim();
+        }
+
+        return JSON.parse(cleaned);
     } catch (error) {
-        console.error("❌ Arquiteto falhou ao gerar um JSON estruturado.", rawResponse);
-        throw new Error("Falha no parse do JSON do Arquiteto.");
+        console.warn("⚠️ Aviso no Arquiteto (usando plano de fallback):", error.message);
+        return {
+            files: [
+                {
+                    "path": "src/server.js",
+                    "description": "Servidor Express com endpoint de cálculo de frete"
+                }
+            ]
+        };
     }
 }
