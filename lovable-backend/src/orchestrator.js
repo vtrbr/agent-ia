@@ -72,8 +72,9 @@ export async function runLovableEngine(rawIdea, testCommand = "node index.js", p
             
             // Segurança (AppSec)
             const securityCheck = await auditCode(file.path, code);
-            report('agent.security.completed', { path: file.path, changed: securityCheck !== 'SEGURO' });
-            if (securityCheck !== "SEGURO") {
+            const normalizedSecurityCheck = String(securityCheck).trim().replace(/^['"]|['"]$/g, '');
+            report('agent.security.completed', { path: file.path, changed: normalizedSecurityCheck !== 'SEGURO' });
+            if (normalizedSecurityCheck !== "SEGURO") {
                 console.log(`⚠️ Falha de segurança neutralizada em ${file.path}`);
                 code = securityCheck;
             } else {

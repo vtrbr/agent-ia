@@ -1,7 +1,12 @@
 import { init } from '@heyputer/puter.js/src/init.cjs';
 import { normalizeText } from './responseUtils.js';
+import { offlineChat } from './offlineProvider.js';
 
 let puterInstance;
+
+function isOfflineMode() {
+    return process.env.AI_OFFLINE_MODE === 'true' || (!process.env.PUTER_AUTH_TOKEN && !process.env.PUTER_TOKEN);
+}
 
 function getPuter() {
     if (!puterInstance) {
@@ -32,6 +37,10 @@ function isRetryable(error) {
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export async function callAI(systemPrompt, userPrompt = '', model = process.env.PUTER_MODEL_DEFAULT || 'gpt-5.4-nano', options = {}) {
+    if (isOfflineMode()) {
+        return offlineChat(systemPrompt, userPrompt);
+    }
+
     const messages = [
         { role: 'system', content: String(systemPrompt || '') },
         { role: 'user', content: String(userPrompt || '') },

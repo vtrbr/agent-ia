@@ -237,11 +237,16 @@ export async function gitRollbackTo(commit) {
 
 export async function gitRollback() {
     try {
-        await execAsync('git reset --hard HEAD~1', { cwd: workspaceDir });
-        console.log(`⏪ Rollback executado. Projeto restaurado!`);
-        return true;
-    } catch (error) {
-        console.error(`❌ Falha no Rollback: ${error.message}`);
-        return false;
+        await execFileAsync('git', ['reset', '--hard', 'HEAD~1'], { cwd: workspaceDir });
+    } catch {
+        try {
+            await execFileAsync('git', ['reset', '--hard', 'HEAD'], { cwd: workspaceDir });
+            await execFileAsync('git', ['clean', '-fd'], { cwd: workspaceDir });
+        } catch (error) {
+            console.error(`❌ Falha no Rollback: ${error.message}`);
+            return false;
+        }
     }
+    console.log(`⏪ Rollback executado. Projeto restaurado!`);
+    return true;
 }
